@@ -3,10 +3,10 @@
   "sessionId": "fd6c76c4-00b8-4968-8681-383c7b17cd97",
   "status": "running",
   "startedAt": "2026-01-28T12:43:51.198Z",
-  "updatedAt": "2026-01-28T12:52:54.025Z",
-  "currentIteration": 2,
+  "updatedAt": "2026-01-28T12:53:56.284Z",
+  "currentIteration": 3,
   "maxIterations": 15,
-  "tasksCompleted": 2,
+  "tasksCompleted": 3,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -29,8 +29,8 @@
       {
         "id": "US-003",
         "title": "Settings page in WooCommerce",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-004",
@@ -96,6 +96,16 @@
       "durationMs": 93797,
       "startedAt": "2026-01-28T12:46:37.724Z",
       "endedAt": "2026-01-28T12:48:11.521Z"
+    },
+    {
+      "iteration": 3,
+      "status": "completed",
+      "taskId": "US-003",
+      "taskTitle": "Settings page in WooCommerce",
+      "taskCompleted": true,
+      "durationMs": 281396,
+      "startedAt": "2026-01-28T12:48:12.608Z",
+      "endedAt": "2026-01-28T12:52:54.004Z"
     }
   ],
   "skippedTaskIds": [],
