@@ -78,3 +78,29 @@ add_action(
 		Checkout\ShippingPhoneValidator::init();
 	}
 );
+
+/**
+ * Plugin deactivation callback.
+ *
+ * Removes all validation hooks to restore default WooCommerce behavior.
+ * Note: Settings are intentionally NOT deleted to preserve configuration for reactivation.
+ *
+ * @return void
+ */
+function shift64_phone_validation_deactivate(): void {
+	// Remove Settings hooks.
+	remove_filter( 'woocommerce_settings_tabs_array', array( Admin\Settings::class, 'add_settings_tab' ), 50 );
+	remove_action( 'woocommerce_settings_tabs_' . Admin\Settings::TAB_ID, array( Admin\Settings::class, 'render_settings_page' ) );
+	remove_action( 'woocommerce_update_options_' . Admin\Settings::TAB_ID, array( Admin\Settings::class, 'save_settings' ) );
+
+	// Remove BillingPhoneValidator hooks.
+	remove_action( 'woocommerce_checkout_process', array( Checkout\BillingPhoneValidator::class, 'validate_billing_phone' ) );
+	remove_action( 'woocommerce_checkout_create_order', array( Checkout\BillingPhoneValidator::class, 'format_billing_phone_on_order' ), 10 );
+
+	// Remove ShippingPhoneValidator hooks.
+	remove_action( 'woocommerce_checkout_process', array( Checkout\ShippingPhoneValidator::class, 'validate_shipping_phone' ) );
+	remove_action( 'woocommerce_checkout_create_order', array( Checkout\ShippingPhoneValidator::class, 'format_shipping_phone_on_order' ), 10 );
+}
+
+// Register deactivation hook.
+register_deactivation_hook( __FILE__, __NAMESPACE__ . '\\shift64_phone_validation_deactivate' );
