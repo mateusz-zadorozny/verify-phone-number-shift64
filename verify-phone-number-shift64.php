@@ -58,6 +58,7 @@ add_action(
 			return;
 		}
 
-		// Initialize plugin functionality here when WooCommerce is active.
+		// Initialize plugin settings.
+		Admin\Settings::init();
 	}
 );
