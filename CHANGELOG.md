@@ -1,3 +1,10 @@
+# [1.1.0](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.0.1...v1.1.0) (2026-01-28)
+
+
+### Features
+
+* add GitHub auto-updater for self-updates from releases ([6cefe89](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/6cefe8904f5b5270ba629017af375e5fd619ca30))
+
 ## [1.0.1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.0.0...v1.0.1) (2026-01-28)
 
 
