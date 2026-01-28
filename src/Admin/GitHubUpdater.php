@@ -102,15 +102,15 @@ class GitHubUpdater {
 		}
 
 		$transient->response[ $plugin_file ] = (object) array(
-			'slug'        => self::PLUGIN_SLUG,
-			'plugin'      => $plugin_file,
-			'new_version' => $new_version,
-			'url'         => $release_info['html_url'],
-			'package'     => $download_url,
-			'icons'       => array(),
-			'banners'     => array(),
-			'tested'      => '',
-			'requires'    => '5.0',
+			'slug'         => self::PLUGIN_SLUG,
+			'plugin'       => $plugin_file,
+			'new_version'  => $new_version,
+			'url'          => $release_info['html_url'],
+			'package'      => $download_url,
+			'icons'        => array(),
+			'banners'      => array(),
+			'tested'       => '',
+			'requires'     => '5.0',
 			'requires_php' => '7.4',
 		);
 
@@ -143,21 +143,21 @@ class GitHubUpdater {
 		$download_url = self::get_download_url( $release_info );
 
 		return (object) array(
-			'name'          => 'Verify Phone Number Shift64',
-			'slug'          => self::PLUGIN_SLUG,
-			'version'       => $new_version,
-			'author'        => '<a href="https://shift64.com">Shift64</a>',
+			'name'           => 'Verify Phone Number Shift64',
+			'slug'           => self::PLUGIN_SLUG,
+			'version'        => $new_version,
+			'author'         => '<a href="https://shift64.com">Shift64</a>',
 			'author_profile' => 'https://shift64.com',
-			'homepage'      => 'https://shift64.com/plugins/verify-phone-number',
-			'download_link' => $download_url,
-			'requires'      => '5.0',
-			'tested'        => '',
-			'requires_php'  => '7.4',
-			'sections'      => array(
-				'description'  => 'Smart phone number validation and formatting for WordPress using Google\'s libphonenumber library.',
-				'changelog'    => self::format_changelog( $release_info['body'] ?? '' ),
+			'homepage'       => 'https://shift64.com/plugins/verify-phone-number',
+			'download_link'  => $download_url,
+			'requires'       => '5.0',
+			'tested'         => '',
+			'requires_php'   => '7.4',
+			'sections'       => array(
+				'description' => 'Smart phone number validation and formatting for WordPress using Google\'s libphonenumber library.',
+				'changelog'   => self::format_changelog( $release_info['body'] ?? '' ),
 			),
-			'banners'       => array(),
+			'banners'        => array(),
 		);
 	}
 

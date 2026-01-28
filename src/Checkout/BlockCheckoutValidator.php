@@ -63,7 +63,7 @@ class BlockCheckoutValidator {
 				$error_message = self::get_user_friendly_error( $result->get_error_message(), 'billing' );
 				throw new RouteException(
 					'invalid_billing_phone',
-					$error_message,
+					esc_html( $error_message ),
 					400,
 					array(
 						'field' => 'billing_phone',
@@ -90,7 +90,7 @@ class BlockCheckoutValidator {
 				$error_message = self::get_user_friendly_error( $result->get_error_message(), 'shipping' );
 				throw new RouteException(
 					'invalid_shipping_phone',
-					$error_message,
+					esc_html( $error_message ),
 					400,
 					array(
 						'field' => 'shipping_phone',
@@ -121,7 +121,7 @@ class BlockCheckoutValidator {
 		$locale = self::get_current_locale();
 
 		// Switch to the correct locale if needed.
-		if ( function_exists( 'switch_to_locale' ) && $locale && $locale !== get_locale() ) {
+		if ( function_exists( 'switch_to_locale' ) && $locale && get_locale() !== $locale ) {
 			switch_to_locale( $locale );
 		}
 
@@ -175,6 +175,7 @@ class BlockCheckoutValidator {
 
 		// Try WPML.
 		if ( defined( 'ICL_LANGUAGE_CODE' ) ) {
+			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WPML hook.
 			$wpml_lang = apply_filters( 'wpml_current_language', null );
 			if ( $wpml_lang && isset( $locale_map[ $wpml_lang ] ) ) {
 				return $locale_map[ $wpml_lang ];
