@@ -72,3 +72,12 @@ to(PhoneNumber $phone_number, string $format)`** - Formats to a specific format 
 ormats phone using `PhoneFormatter::format()` when `is_format_on_save_enabled()` |\n| Error messages translatable (i18n) | Uses `__()` with text domain `verify-phone-number-shift64` |\n| Error: \"Please enter a valid phone number\" | Default error for invalid numbers |\n| Error: \"Number must contain country prefix\" | Shown when international-only mode requires `+` prefix |\n\n**Modified:** `verify-phone-number-shift64.php` - Added initialization of `Checkout\\BillingPhoneValidator::init()`\n\n
 
 ---
+## ✓ Iteration 8 - US-008: WooCommerce checkout integration - shipping_phone
+*2026-01-28T13:04:48.794Z (130s)*
+
+**Status:** Completed
+
+**Notes:**
+e validation logic as BillingPhoneValidator\n   - Uses shipping_country for validation context\n\n2. **Updated `verify-phone-number-shift64.php`** - Registered the ShippingPhoneValidator in the plugins_loaded action\n\n**Acceptance Criteria Met:**\n- ✅ Hook on shipping_phone field validation in WooCommerce checkout\n- ✅ Validation runs only when plugin is enabled in settings\n- ✅ Validation logic identical to billing_phone\n- ✅ shipping_phone field validated only when filled (optional field)\n\n
+
+---
