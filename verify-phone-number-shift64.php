@@ -48,3 +48,16 @@ if ( file_exists( $autoloader ) ) {
 	);
 	return;
 }
+
+// Check WooCommerce dependency.
+add_action(
+	'plugins_loaded',
+	function () {
+		if ( ! Admin\DependencyChecker::is_woocommerce_active() ) {
+			Admin\DependencyChecker::display_woocommerce_missing_notice();
+			return;
+		}
+
+		// Initialize plugin functionality here when WooCommerce is active.
+	}
+);
