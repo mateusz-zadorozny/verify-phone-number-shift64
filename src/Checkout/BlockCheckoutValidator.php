@@ -48,6 +48,9 @@ class BlockCheckoutValidator {
 			return;
 		}
 
+		// Ensure translations are loaded for REST API requests.
+		self::load_textdomain();
+
 		// Validate billing phone.
 		$billing_phone = $order->get_billing_phone();
 		if ( ! empty( $billing_phone ) ) {
@@ -106,6 +109,80 @@ class BlockCheckoutValidator {
 		if ( Settings::is_format_on_save_enabled() && ( ! empty( $billing_phone ) || ! empty( $shipping_phone ) ) ) {
 			$order->save();
 		}
+	}
+
+	/**
+	 * Load plugin text domain for REST API requests.
+	 *
+	 * @return void
+	 */
+	private static function load_textdomain(): void {
+		// Get the locale - try multiple methods for multilingual compatibility.
+		$locale = self::get_current_locale();
+
+		// Switch to the correct locale if needed.
+		if ( function_exists( 'switch_to_locale' ) && $locale && $locale !== get_locale() ) {
+			switch_to_locale( $locale );
+		}
+
+		// Unload and reload translations to ensure correct locale is used.
+		unload_textdomain( 'verify-phone-number-shift64' );
+
+		// Load translations.
+		load_plugin_textdomain(
+			'verify-phone-number-shift64',
+			false,
+			dirname( plugin_basename( SHIFT64_PHONE_VALIDATION_FILE ) ) . '/languages'
+		);
+	}
+
+	/**
+	 * Get current locale with multilingual plugin support.
+	 *
+	 * @return string The current locale.
+	 */
+	private static function get_current_locale(): string {
+		// Language code to locale mapping.
+		$locale_map = array(
+			'pl' => 'pl_PL',
+			'en' => 'en_US',
+			'de' => 'de_DE',
+			'fr' => 'fr_FR',
+			'es' => 'es_ES',
+			'it' => 'it_IT',
+			'nl' => 'nl_NL',
+			'pt' => 'pt_PT',
+			'ru' => 'ru_RU',
+		);
+
+		// Try to detect language from HTTP_REFERER (most reliable for REST API).
+		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$referer = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
+		if ( $referer && preg_match( '#/([a-z]{2})(/|$|\?)#', $referer, $matches ) ) {
+			$lang_code = $matches[1];
+			if ( isset( $locale_map[ $lang_code ] ) ) {
+				return $locale_map[ $lang_code ];
+			}
+		}
+
+		// Try Polylang.
+		if ( function_exists( 'pll_current_language' ) ) {
+			$pll_locale = pll_current_language( 'locale' );
+			if ( $pll_locale ) {
+				return $pll_locale;
+			}
+		}
+
+		// Try WPML.
+		if ( defined( 'ICL_LANGUAGE_CODE' ) ) {
+			$wpml_lang = apply_filters( 'wpml_current_language', null );
+			if ( $wpml_lang && isset( $locale_map[ $wpml_lang ] ) ) {
+				return $locale_map[ $wpml_lang ];
+			}
+		}
+
+		// Fallback to determine_locale().
+		return determine_locale();
 	}
 
 	/**

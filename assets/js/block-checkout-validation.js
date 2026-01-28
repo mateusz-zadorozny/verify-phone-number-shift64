@@ -32,15 +32,14 @@
 	 * @return {Element|null} The input element or null.
 	 */
 	function findPhoneField(type) {
-		// Try various selectors used by WooCommerce Blocks.
+		// WooCommerce Blocks uses 'shipping-phone' or 'billing-phone' IDs.
+		// When "use same address for billing" is checked, only shipping fields exist.
 		var selectors = [
 			'#' + type + '-phone',
-			'#' + type + '_phone',
-			'[name="' + type + '-phone"]',
-			'[name="' + type + '_phone"]',
-			'input[id*="' + type + '"][id*="phone"]',
-			'.wc-block-components-address-form__' + type + ' input[autocomplete="tel"]',
-			'.wc-block-components-address-form input[id*="phone"]'
+			'#shipping-phone', // Fallback - often billing uses shipping field
+			'#billing-phone',
+			'input[id$="-phone"]', // Any field ending with -phone
+			'input[autocomplete="tel"]'
 		];
 
 		for (var i = 0; i < selectors.length; i++) {
