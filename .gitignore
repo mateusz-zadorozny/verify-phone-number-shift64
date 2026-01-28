@@ -11,4 +11,4 @@ vendor/
 .ralph-tui/
 tasks/
 CLAUDE.md
-claude/
+.claude/
