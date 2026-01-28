@@ -3,10 +3,10 @@
   "sessionId": "fd6c76c4-00b8-4968-8681-383c7b17cd97",
   "status": "running",
   "startedAt": "2026-01-28T12:43:51.198Z",
-  "updatedAt": "2026-01-28T12:53:56.284Z",
-  "currentIteration": 3,
+  "updatedAt": "2026-01-28T12:57:07.028Z",
+  "currentIteration": 4,
   "maxIterations": 15,
-  "tasksCompleted": 3,
+  "tasksCompleted": 4,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -35,8 +35,8 @@
       {
         "id": "US-004",
         "title": "Phone number normalizer class",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-005",
@@ -106,6 +106,16 @@
       "durationMs": 281396,
       "startedAt": "2026-01-28T12:48:12.608Z",
       "endedAt": "2026-01-28T12:52:54.004Z"
+    },
+    {
+      "iteration": 4,
+      "status": "completed",
+      "taskId": "US-004",
+      "taskTitle": "Phone number normalizer class",
+      "taskCompleted": true,
+      "durationMs": 61178,
+      "startedAt": "2026-01-28T12:52:55.104Z",
+      "endedAt": "2026-01-28T12:53:56.282Z"
     }
   ],
   "skippedTaskIds": [],
