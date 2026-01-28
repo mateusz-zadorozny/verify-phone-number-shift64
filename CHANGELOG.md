@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.0.0...v1.0.1) (2026-01-28)
+
+
+### Performance Improvements
+
+* switch to libphonenumber-lite to reduce package size from 28MB to 2.8MB ([10ec8fd](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/10ec8fdc9dee8abbf61eb28c9e36902c4a433b9f))
+
 # 1.0.0 (2026-01-28)
 
 
