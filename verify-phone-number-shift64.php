@@ -66,6 +66,9 @@ add_action(
 add_action(
 	'plugins_loaded',
 	function () {
+		// Initialize GitHub updater (runs regardless of WooCommerce).
+		Admin\GitHubUpdater::init();
+
 		if ( ! Admin\DependencyChecker::is_woocommerce_active() ) {
 			Admin\DependencyChecker::display_woocommerce_missing_notice();
 			return;
@@ -95,6 +98,9 @@ add_action(
  * @return void
  */
 function shift64_phone_validation_deactivate(): void {
+	// Clear GitHub updater cache.
+	Admin\GitHubUpdater::clear_cache();
+
 	// Remove Settings hooks.
 	remove_filter( 'woocommerce_settings_tabs_array', array( Admin\Settings::class, 'add_settings_tab' ), 50 );
 	remove_action( 'woocommerce_settings_tabs_' . Admin\Settings::TAB_ID, array( Admin\Settings::class, 'render_settings_page' ) );
