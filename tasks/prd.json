@@ -184,14 +184,15 @@
         "Reactivation restores configuration"
       ],
       "priority": 10,
-      "passes": false,
+      "passes": true,
       "dependsOn": [
         "US-007",
         "US-008"
-      ]
+      ],
+      "completionNotes": "Completed by agent"
     }
   ],
   "metadata": {
-    "updatedAt": "2026-01-28T13:10:55.311Z"
+    "updatedAt": "2026-01-28T13:13:16.414Z"
   }
 }

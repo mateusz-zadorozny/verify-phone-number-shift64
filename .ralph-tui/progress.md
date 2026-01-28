@@ -81,3 +81,12 @@ ormats phone using `PhoneFormatter::format()` when `is_format_on_save_enabled()`
 e validation logic as BillingPhoneValidator\n   - Uses shipping_country for validation context\n\n2. **Updated `verify-phone-number-shift64.php`** - Registered the ShippingPhoneValidator in the plugins_loaded action\n\n**Acceptance Criteria Met:**\n- ✅ Hook on shipping_phone field validation in WooCommerce checkout\n- ✅ Validation runs only when plugin is enabled in settings\n- ✅ Validation logic identical to billing_phone\n- ✅ shipping_phone field validated only when filled (optional field)\n\n
 
 ---
+## ✓ Iteration 9 - US-009: Translation files PL and EN
+*2026-01-28T13:10:55.388Z (366s)*
+
+**Status:** Completed
+
+**Notes:**
+\n\n**5. Verified all user-facing strings use translation functions**\n- `__()` for simple translations\n- `esc_html__()` for escaped HTML output\n- Consistent text domain `verify-phone-number-shift64` throughout\n\n### Acceptance Criteria Status:\n- [x] .pot template file with all translatable strings\n- [x] .po and .mo files for Polish (pl_PL)\n- [x] .po and .mo files for English (en_US)\n- [x] Plugin text domain properly registered\n- [x] All user-facing strings use __() or _e() functions\n\n
+
+---
