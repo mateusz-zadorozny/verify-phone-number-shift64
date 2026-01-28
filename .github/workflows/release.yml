@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    branches:
+      - master
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "lts/*"
+          cache: npm
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          tools: composer:v2
+
+      - name: Install npm dependencies
+        run: npm ci
+
+      - name: Install Composer dependencies (production)
+        run: composer install --no-dev --optimize-autoloader --prefer-dist
+
+      - name: Run Semantic Release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build release artifact
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: |
+          # Create dist directory
+          mkdir -p dist
+
+          # Copy plugin files (excluding dev files)
+          rsync -av --progress . dist/verify-phone-number-shift64/ \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='.circleci' \
+            --exclude='.claude' \
+            --exclude='.ralph-tui' \
+            --exclude='node_modules' \
+            --exclude='dist' \
+            --exclude='tests' \
+            --exclude='bin' \
+            --exclude='tasks' \
+            --exclude='*.zip' \
+            --exclude='*.tar.gz' \
+            --exclude='*.sql' \
+            --exclude='.git*' \
+            --exclude='.editorconfig' \
+            --exclude='.phpcs.xml.dist' \
+            --exclude='.distignore' \
+            --exclude='phpunit.xml.dist' \
+            --exclude='composer.json' \
+            --exclude='composer.lock' \
+            --exclude='package.json' \
+            --exclude='package-lock.json' \
+            --exclude='.releaserc.json' \
+            --exclude='CHANGELOG.md'
+
+          # Create zip archive
+          cd dist
+          zip -r verify-phone-number-shift64.zip verify-phone-number-shift64
+
+          echo "Release artifact created: dist/verify-phone-number-shift64.zip"
+          echo "Version: ${{ steps.semantic.outputs.new_release_version }}"
+
+      - name: Upload artifact to release
+        if: steps.semantic.outputs.new_release_published == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "v${{ steps.semantic.outputs.new_release_version }}" \
+            dist/verify-phone-number-shift64.zip \
+            --clobber
