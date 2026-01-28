@@ -7,7 +7,7 @@
  * Author URI:      https://shift64.com
  * Text Domain:     verify-phone-number-shift64
  * Domain Path:     /languages
- * Version:         1.1.0
+ * Version:         1.1.1
  * Requires PHP:    7.4
  * Requires at least: 5.0
  *
@@ -24,7 +24,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 // Define plugin constants.
-define( 'SHIFT64_PHONE_VALIDATION_VERSION', '1.1.0' );
+define( 'SHIFT64_PHONE_VALIDATION_VERSION', '1.1.1' );
 define( 'SHIFT64_PHONE_VALIDATION_FILE', __FILE__ );
 define( 'SHIFT64_PHONE_VALIDATION_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SHIFT64_PHONE_VALIDATION_URL', plugin_dir_url( __FILE__ ) );

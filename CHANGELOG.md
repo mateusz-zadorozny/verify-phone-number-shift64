@@ -1,3 +1,10 @@
+## [1.1.1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.1.0...v1.1.1) (2026-01-28)
+
+
+### Bug Fixes
+
+* **ci:** add PHP 8.1 platform constraint for CI compatibility ([5191510](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/51915108a658a23bc6d5b637b7e147da57cea7ae))
+
 # [1.1.0](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.0.1...v1.1.0) (2026-01-28)
 
 
