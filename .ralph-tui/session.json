@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "sessionId": "fd6c76c4-00b8-4968-8681-383c7b17cd97",
+  "status": "running",
+  "startedAt": "2026-01-28T12:43:51.198Z",
+  "updatedAt": "2026-01-28T12:46:36.639Z",
+  "currentIteration": 0,
+  "maxIterations": 15,
+  "tasksCompleted": 0,
+  "isPaused": false,
+  "agentPlugin": "claude",
+  "trackerState": {
+    "plugin": "json",
+    "prdPath": "./tasks/prd.json",
+    "totalTasks": 10,
+    "tasks": [
+      {
+        "id": "US-001",
+        "title": "Project structure and autoloading",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-002",
+        "title": "WooCommerce dependency check",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-003",
+        "title": "Settings page in WooCommerce",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-004",
+        "title": "Phone number normalizer class",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-005",
+        "title": "Phone number validator class",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-006",
+        "title": "Phone number formatter class",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-007",
+        "title": "WooCommerce checkout integration - billing_phone",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-008",
+        "title": "WooCommerce checkout integration - shipping_phone",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-009",
+        "title": "Translation files PL and EN",
+        "status": "open",
+        "completedInSession": false
+      },
+      {
+        "id": "US-010",
+        "title": "Plugin deactivation restores default behavior",
+        "status": "open",
+        "completedInSession": false
+      }
+    ]
+  },
+  "iterations": [],
+  "skippedTaskIds": [],
+  "cwd": "/Users/mateuszzadorozny/Local Sites/b2b-king/app/public/wp-content/plugins/verify-phone-number-shift64",
+  "activeTaskIds": [],
+  "subagentPanelVisible": false
+}
