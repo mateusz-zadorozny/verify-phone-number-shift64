@@ -45,3 +45,12 @@ labels wrapped with `__()` translation function\n- **Helper Methods**: Convenien
 ass created**: `Shift64\\SmartPhoneValidation\\Validation\\Normalizer` at `src/Validation/Normalizer.php`\n- **Removes whitespace, dashes, parentheses, dots**: Uses `preg_replace('/[\\s\\-\\(\\)\\.]+/', '', $normalized)`\n- **Replaces '00' prefix with '+'**: Converts international dialing prefix to plus format\n- **Trims input**: Uses `trim()` at the start\n- **Returns normalized string**: Returns the cleaned phone number\n\nCommitted as `3f2135b feat: US-004 - Phone number normalizer class`\n\n
 
 ---
+## ✓ Iteration 5 - US-005: Phone number validator class
+*2026-01-28T12:57:07.093Z (190s)*
+
+**Status:** Completed
+
+**Notes:**
+ce criteria met:\n- [x] Class `Shift64\\SmartPhoneValidation\\Validation\\PhoneValidator` created\n- [x] Method accepts number and optional country code\n- [x] Detects international numbers (starting with '+')\n- [x] For numbers without prefix uses default country from settings\n- [x] In 'International only' mode rejects numbers without '+' prefix\n- [x] Uses libphonenumber for parsing and `isValidNumber()` for validation\n- [x] Returns result object with success/error info and parsed number\n\n
+
+---

@@ -3,10 +3,10 @@
   "sessionId": "fd6c76c4-00b8-4968-8681-383c7b17cd97",
   "status": "running",
   "startedAt": "2026-01-28T12:43:51.198Z",
-  "updatedAt": "2026-01-28T12:57:07.028Z",
-  "currentIteration": 4,
+  "updatedAt": "2026-01-28T12:59:10.024Z",
+  "currentIteration": 5,
   "maxIterations": 15,
-  "tasksCompleted": 4,
+  "tasksCompleted": 5,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -41,8 +41,8 @@
       {
         "id": "US-005",
         "title": "Phone number validator class",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-006",
@@ -116,6 +116,16 @@
       "durationMs": 61178,
       "startedAt": "2026-01-28T12:52:55.104Z",
       "endedAt": "2026-01-28T12:53:56.282Z"
+    },
+    {
+      "iteration": 5,
+      "status": "completed",
+      "taskId": "US-005",
+      "taskTitle": "Phone number validator class",
+      "taskCompleted": true,
+      "durationMs": 189660,
+      "startedAt": "2026-01-28T12:53:57.363Z",
+      "endedAt": "2026-01-28T12:57:07.023Z"
     }
   ],
   "skippedTaskIds": [],
