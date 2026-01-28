@@ -63,3 +63,12 @@ ce criteria met:\n- [x] Class `Shift64\\SmartPhoneValidation\\Validation\\PhoneV
 to(PhoneNumber $phone_number, string $format)`** - Formats to a specific format by key\n\n### Acceptance Criteria:\n- [x] Class `Shift64\\SmartPhoneValidation\\Formatter\\PhoneFormatter` created\n- [x] Method formats number to E.164 (e.g., +48224100500)\n- [x] Method formats number to INTERNATIONAL (e.g., +48 22 410 05 00)\n- [x] Method formats number to NATIONAL (e.g., 22 410 05 00)\n- [x] Format selected based on plugin settings (via `format()` method using `Settings::get_output_format()`)\n\n
 
 ---
+## ✓ Iteration 7 - US-007: WooCommerce checkout integration - billing_phone
+*2026-01-28T13:02:37.913Z (207s)*
+
+**Status:** Completed
+
+**Notes:**
+ormats phone using `PhoneFormatter::format()` when `is_format_on_save_enabled()` |\n| Error messages translatable (i18n) | Uses `__()` with text domain `verify-phone-number-shift64` |\n| Error: \"Please enter a valid phone number\" | Default error for invalid numbers |\n| Error: \"Number must contain country prefix\" | Shown when international-only mode requires `+` prefix |\n\n**Modified:** `verify-phone-number-shift64.php` - Added initialization of `Checkout\\BillingPhoneValidator::init()`\n\n
+
+---
