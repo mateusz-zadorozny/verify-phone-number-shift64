@@ -928,3 +928,22 @@ msgstr ""
 #: src/Validation/PhoneValidator.php:119
 msgid "Unable to parse phone number."
 msgstr ""
+
+#. Block checkout validation messages
+#: src/Checkout/BlockCheckoutValidator.php:109
+msgid "Billing phone"
+msgstr ""
+
+#: src/Checkout/BlockCheckoutValidator.php:110
+msgid "Shipping phone"
+msgstr ""
+
+#. translators: %s: field label (Billing phone or Shipping phone)
+#: src/Checkout/BlockCheckoutValidator.php:115
+msgid "%s must contain country prefix."
+msgstr ""
+
+#. translators: %s: field label (Billing phone or Shipping phone)
+#: src/Checkout/BlockCheckoutValidator.php:119
+msgid "%s is not a valid phone number."
+msgstr ""

@@ -49,16 +49,17 @@ if ( file_exists( $autoloader ) ) {
 	return;
 }
 
-// Load plugin text domain for translations.
+// Load plugin text domain for translations (early, before REST API processing).
 add_action(
-	'init',
+	'plugins_loaded',
 	function () {
 		load_plugin_textdomain(
 			'verify-phone-number-shift64',
 			false,
 			dirname( plugin_basename( __FILE__ ) ) . '/languages'
 		);
-	}
+	},
+	5 // Early priority to ensure translations are available for Store API.
 );
 
 // Check WooCommerce dependency.
@@ -76,6 +77,12 @@ add_action(
 		// Initialize checkout phone validation.
 		Checkout\BillingPhoneValidator::init();
 		Checkout\ShippingPhoneValidator::init();
+
+		// Initialize block checkout validation (Store API).
+		Checkout\BlockCheckoutValidator::init();
+
+		// Initialize checkout assets (JS for field highlighting).
+		Checkout\Assets::init();
 	}
 );
 
@@ -94,12 +101,18 @@ function shift64_phone_validation_deactivate(): void {
 	remove_action( 'woocommerce_update_options_' . Admin\Settings::TAB_ID, array( Admin\Settings::class, 'save_settings' ) );
 
 	// Remove BillingPhoneValidator hooks.
-	remove_action( 'woocommerce_checkout_process', array( Checkout\BillingPhoneValidator::class, 'validate_billing_phone' ) );
+	remove_action( 'woocommerce_after_checkout_validation', array( Checkout\BillingPhoneValidator::class, 'validate_billing_phone' ), 10 );
 	remove_action( 'woocommerce_checkout_create_order', array( Checkout\BillingPhoneValidator::class, 'format_billing_phone_on_order' ), 10 );
 
 	// Remove ShippingPhoneValidator hooks.
-	remove_action( 'woocommerce_checkout_process', array( Checkout\ShippingPhoneValidator::class, 'validate_shipping_phone' ) );
+	remove_action( 'woocommerce_after_checkout_validation', array( Checkout\ShippingPhoneValidator::class, 'validate_shipping_phone' ), 10 );
 	remove_action( 'woocommerce_checkout_create_order', array( Checkout\ShippingPhoneValidator::class, 'format_shipping_phone_on_order' ), 10 );
+
+	// Remove BlockCheckoutValidator hooks.
+	remove_action( 'woocommerce_store_api_checkout_order_processed', array( Checkout\BlockCheckoutValidator::class, 'validate_phones' ), 10 );
+
+	// Remove Assets hooks.
+	remove_action( 'wp_enqueue_scripts', array( Checkout\Assets::class, 'enqueue_checkout_scripts' ) );
 }
 
 // Register deactivation hook.

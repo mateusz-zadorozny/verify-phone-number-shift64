@@ -24,8 +24,8 @@ class BillingPhoneValidator {
 	 * @return void
 	 */
 	public static function init(): void {
-		// Validate billing phone during checkout process.
-		add_action( 'woocommerce_checkout_process', array( self::class, 'validate_billing_phone' ) );
+		// Validate billing phone during checkout with field-specific errors.
+		add_action( 'woocommerce_after_checkout_validation', array( self::class, 'validate_billing_phone' ), 10, 2 );
 
 		// Format billing phone before saving order.
 		add_action( 'woocommerce_checkout_create_order', array( self::class, 'format_billing_phone_on_order' ), 10, 2 );
@@ -34,17 +34,18 @@ class BillingPhoneValidator {
 	/**
 	 * Validate billing phone number during checkout.
 	 *
+	 * @param array     $data   Checkout posted data.
+	 * @param \WP_Error $errors Validation errors.
 	 * @return void
 	 */
-	public static function validate_billing_phone(): void {
+	public static function validate_billing_phone( array $data, \WP_Error $errors ): void {
 		// Only validate if plugin is enabled.
 		if ( ! Settings::is_validation_enabled() ) {
 			return;
 		}
 
-		// Get billing phone from POST data.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WooCommerce handles nonce verification.
-		$billing_phone = isset( $_POST['billing_phone'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_phone'] ) ) : '';
+		// Get billing phone from posted data.
+		$billing_phone = isset( $data['billing_phone'] ) ? $data['billing_phone'] : '';
 
 		// Skip validation if phone is empty (WooCommerce handles required field validation).
 		if ( '' === $billing_phone ) {
@@ -52,8 +53,7 @@ class BillingPhoneValidator {
 		}
 
 		// Get country for validation context.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WooCommerce handles nonce verification.
-		$billing_country = isset( $_POST['billing_country'] ) ? sanitize_text_field( wp_unslash( $_POST['billing_country'] ) ) : null;
+		$billing_country = isset( $data['billing_country'] ) ? $data['billing_country'] : null;
 
 		// Use billing country if provided, otherwise use default from settings.
 		$country_code = ! empty( $billing_country ) ? $billing_country : null;
@@ -63,7 +63,7 @@ class BillingPhoneValidator {
 
 		if ( ! $result->is_valid() ) {
 			$error_message = self::get_user_friendly_error( $result->get_error_message() );
-			wc_add_notice( $error_message, 'error' );
+			$errors->add( 'billing_phone_validation', $error_message, array( 'id' => 'billing_phone' ) );
 		}
 	}
 

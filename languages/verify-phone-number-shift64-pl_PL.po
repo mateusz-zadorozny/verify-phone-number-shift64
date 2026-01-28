@@ -931,3 +931,22 @@ msgstr "Numer telefonu jest zbyt długi."
 #: src/Validation/PhoneValidator.php:119
 msgid "Unable to parse phone number."
 msgstr "Nie można przetworzyć numeru telefonu."
+
+#. Block checkout validation messages
+#: src/Checkout/BlockCheckoutValidator.php:109
+msgid "Billing phone"
+msgstr "Telefon do płatności"
+
+#: src/Checkout/BlockCheckoutValidator.php:110
+msgid "Shipping phone"
+msgstr "Telefon do wysyłki"
+
+#. translators: %s: field label (Billing phone or Shipping phone)
+#: src/Checkout/BlockCheckoutValidator.php:115
+msgid "%s must contain country prefix."
+msgstr "%s musi zawierać prefiks kraju."
+
+#. translators: %s: field label (Billing phone or Shipping phone)
+#: src/Checkout/BlockCheckoutValidator.php:119
+msgid "%s is not a valid phone number."
+msgstr "%s nie jest prawidłowym numerem telefonu."

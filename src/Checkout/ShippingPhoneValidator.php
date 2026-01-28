@@ -24,8 +24,8 @@ class ShippingPhoneValidator {
 	 * @return void
 	 */
 	public static function init(): void {
-		// Validate shipping phone during checkout process.
-		add_action( 'woocommerce_checkout_process', array( self::class, 'validate_shipping_phone' ) );
+		// Validate shipping phone during checkout with field-specific errors.
+		add_action( 'woocommerce_after_checkout_validation', array( self::class, 'validate_shipping_phone' ), 10, 2 );
 
 		// Format shipping phone before saving order.
 		add_action( 'woocommerce_checkout_create_order', array( self::class, 'format_shipping_phone_on_order' ), 10, 2 );
@@ -34,17 +34,18 @@ class ShippingPhoneValidator {
 	/**
 	 * Validate shipping phone number during checkout.
 	 *
+	 * @param array     $data   Checkout posted data.
+	 * @param \WP_Error $errors Validation errors.
 	 * @return void
 	 */
-	public static function validate_shipping_phone(): void {
+	public static function validate_shipping_phone( array $data, \WP_Error $errors ): void {
 		// Only validate if plugin is enabled.
 		if ( ! Settings::is_validation_enabled() ) {
 			return;
 		}
 
-		// Get shipping phone from POST data.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WooCommerce handles nonce verification.
-		$shipping_phone = isset( $_POST['shipping_phone'] ) ? sanitize_text_field( wp_unslash( $_POST['shipping_phone'] ) ) : '';
+		// Get shipping phone from posted data.
+		$shipping_phone = isset( $data['shipping_phone'] ) ? $data['shipping_phone'] : '';
 
 		// Skip validation if phone is empty (shipping phone is optional).
 		if ( '' === $shipping_phone ) {
@@ -52,8 +53,7 @@ class ShippingPhoneValidator {
 		}
 
 		// Get country for validation context.
-		// phpcs:ignore WordPress.Security.NonceVerification.Missing -- WooCommerce handles nonce verification.
-		$shipping_country = isset( $_POST['shipping_country'] ) ? sanitize_text_field( wp_unslash( $_POST['shipping_country'] ) ) : null;
+		$shipping_country = isset( $data['shipping_country'] ) ? $data['shipping_country'] : null;
 
 		// Use shipping country if provided, otherwise use default from settings.
 		$country_code = ! empty( $shipping_country ) ? $shipping_country : null;
@@ -63,7 +63,7 @@ class ShippingPhoneValidator {
 
 		if ( ! $result->is_valid() ) {
 			$error_message = self::get_user_friendly_error( $result->get_error_message() );
-			wc_add_notice( $error_message, 'error' );
+			$errors->add( 'shipping_phone_validation', $error_message, array( 'id' => 'shipping_phone' ) );
 		}
 	}
 
