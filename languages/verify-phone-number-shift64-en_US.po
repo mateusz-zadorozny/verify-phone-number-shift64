@@ -1,0 +1,933 @@
+# English (US) translation for Verify Phone Number Shift64 plugin.
+# Copyright (C) 2024 Shift64
+# This file is distributed under the same license as the Verify Phone Number Shift64 plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Verify Phone Number Shift64 0.1.0\n"
+"Report-Msgid-Bugs-To: https://shift64.com/plugins/verify-phone-number\n"
+"POT-Creation-Date: 2024-01-28 00:00:00+00:00\n"
+"PO-Revision-Date: 2024-01-28 00:00:00+00:00\n"
+"Last-Translator: Shift64 <info@shift64.com>\n"
+"Language-Team: English (US) <en@li.org>\n"
+"Language: en_US\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#. Plugin Name of the plugin
+#: verify-phone-number-shift64.php
+msgid "Verify Phone Number Shift64"
+msgstr "Verify Phone Number Shift64"
+
+#. Description of the plugin
+#: verify-phone-number-shift64.php
+msgid "Smart phone number validation and formatting for WordPress using Google's libphonenumber library."
+msgstr "Smart phone number validation and formatting for WordPress using Google's libphonenumber library."
+
+#: verify-phone-number-shift64.php:42
+msgid "Verify Phone Number Shift64: Composer autoloader not found. Please run \"composer install\" in the plugin directory."
+msgstr "Verify Phone Number Shift64: Composer autoloader not found. Please run \"composer install\" in the plugin directory."
+
+#: src/Admin/DependencyChecker.php:45
+msgid "Verify Phone Number Shift64 requires WooCommerce to be installed and activated."
+msgstr "Verify Phone Number Shift64 requires WooCommerce to be installed and activated."
+
+#: src/Admin/Settings.php:49
+msgid "Phone Validation"
+msgstr "Phone Validation"
+
+#: src/Admin/Settings.php:79
+msgid "Phone Validation Settings"
+msgstr "Phone Validation Settings"
+
+#: src/Admin/Settings.php:81
+msgid "Configure phone number validation and formatting behavior."
+msgstr "Configure phone number validation and formatting behavior."
+
+#: src/Admin/Settings.php:85
+msgid "Enable Validation"
+msgstr "Enable Validation"
+
+#: src/Admin/Settings.php:86
+msgid "Enable phone number validation globally"
+msgstr "Enable phone number validation globally"
+
+#: src/Admin/Settings.php:90
+msgid "When enabled, phone numbers will be validated during checkout."
+msgstr "When enabled, phone numbers will be validated during checkout."
+
+#: src/Admin/Settings.php:93
+msgid "Default Country"
+msgstr "Default Country"
+
+#: src/Admin/Settings.php:94
+msgid "Select the default country code for phone validation."
+msgstr "Select the default country code for phone validation."
+
+#: src/Admin/Settings.php:103
+msgid "Validation Mode"
+msgstr "Validation Mode"
+
+#: src/Admin/Settings.php:104
+msgid "Choose how phone numbers should be validated."
+msgstr "Choose how phone numbers should be validated."
+
+#: src/Admin/Settings.php:110
+msgid "Default country + international"
+msgstr "Default country + international"
+
+#: src/Admin/Settings.php:111
+msgid "International only"
+msgstr "International only"
+
+#: src/Admin/Settings.php:116
+msgid "Output Format"
+msgstr "Output Format"
+
+#: src/Admin/Settings.php:117
+msgid "Select the format for storing phone numbers."
+msgstr "Select the format for storing phone numbers."
+
+#: src/Admin/Settings.php:123
+msgid "E.164 (e.g., +48123456789)"
+msgstr "E.164 (e.g., +48123456789)"
+
+#: src/Admin/Settings.php:124
+msgid "International (e.g., +48 123 456 789)"
+msgstr "International (e.g., +48 123 456 789)"
+
+#: src/Admin/Settings.php:125
+msgid "National (e.g., 123 456 789)"
+msgstr "National (e.g., 123 456 789)"
+
+#: src/Admin/Settings.php:130
+msgid "Enable Formatting on Save"
+msgstr "Enable Formatting on Save"
+
+#: src/Admin/Settings.php:131
+msgid "Automatically format phone numbers when saving"
+msgstr "Automatically format phone numbers when saving"
+
+#: src/Admin/Settings.php:135
+msgid "When enabled, phone numbers will be reformatted to the selected output format before saving."
+msgstr "When enabled, phone numbers will be reformatted to the selected output format before saving."
+
+#. Country names for dropdown
+#: src/Admin/Settings.php:153
+msgid "Afghanistan"
+msgstr "Afghanistan"
+
+#: src/Admin/Settings.php:154
+msgid "Albania"
+msgstr "Albania"
+
+#: src/Admin/Settings.php:155
+msgid "Algeria"
+msgstr "Algeria"
+
+#: src/Admin/Settings.php:156
+msgid "Andorra"
+msgstr "Andorra"
+
+#: src/Admin/Settings.php:157
+msgid "Angola"
+msgstr "Angola"
+
+#: src/Admin/Settings.php:158
+msgid "Argentina"
+msgstr "Argentina"
+
+#: src/Admin/Settings.php:159
+msgid "Armenia"
+msgstr "Armenia"
+
+#: src/Admin/Settings.php:160
+msgid "Australia"
+msgstr "Australia"
+
+#: src/Admin/Settings.php:161
+msgid "Austria"
+msgstr "Austria"
+
+#: src/Admin/Settings.php:162
+msgid "Azerbaijan"
+msgstr "Azerbaijan"
+
+#: src/Admin/Settings.php:163
+msgid "Bahrain"
+msgstr "Bahrain"
+
+#: src/Admin/Settings.php:164
+msgid "Bangladesh"
+msgstr "Bangladesh"
+
+#: src/Admin/Settings.php:165
+msgid "Belarus"
+msgstr "Belarus"
+
+#: src/Admin/Settings.php:166
+msgid "Belgium"
+msgstr "Belgium"
+
+#: src/Admin/Settings.php:167
+msgid "Benin"
+msgstr "Benin"
+
+#: src/Admin/Settings.php:168
+msgid "Bhutan"
+msgstr "Bhutan"
+
+#: src/Admin/Settings.php:169
+msgid "Bolivia"
+msgstr "Bolivia"
+
+#: src/Admin/Settings.php:170
+msgid "Bosnia and Herzegovina"
+msgstr "Bosnia and Herzegovina"
+
+#: src/Admin/Settings.php:171
+msgid "Botswana"
+msgstr "Botswana"
+
+#: src/Admin/Settings.php:172
+msgid "Brazil"
+msgstr "Brazil"
+
+#: src/Admin/Settings.php:173
+msgid "Brunei"
+msgstr "Brunei"
+
+#: src/Admin/Settings.php:174
+msgid "Bulgaria"
+msgstr "Bulgaria"
+
+#: src/Admin/Settings.php:175
+msgid "Burkina Faso"
+msgstr "Burkina Faso"
+
+#: src/Admin/Settings.php:176
+msgid "Burundi"
+msgstr "Burundi"
+
+#: src/Admin/Settings.php:177
+msgid "Cambodia"
+msgstr "Cambodia"
+
+#: src/Admin/Settings.php:178
+msgid "Cameroon"
+msgstr "Cameroon"
+
+#: src/Admin/Settings.php:179
+msgid "Canada"
+msgstr "Canada"
+
+#: src/Admin/Settings.php:180
+msgid "Cape Verde"
+msgstr "Cape Verde"
+
+#: src/Admin/Settings.php:181
+msgid "Central African Republic"
+msgstr "Central African Republic"
+
+#: src/Admin/Settings.php:182
+msgid "Chad"
+msgstr "Chad"
+
+#: src/Admin/Settings.php:183
+msgid "Chile"
+msgstr "Chile"
+
+#: src/Admin/Settings.php:184
+msgid "China"
+msgstr "China"
+
+#: src/Admin/Settings.php:185
+msgid "Colombia"
+msgstr "Colombia"
+
+#: src/Admin/Settings.php:186
+msgid "Comoros"
+msgstr "Comoros"
+
+#: src/Admin/Settings.php:187
+msgid "Congo"
+msgstr "Congo"
+
+#: src/Admin/Settings.php:188
+msgid "Costa Rica"
+msgstr "Costa Rica"
+
+#: src/Admin/Settings.php:189
+msgid "Croatia"
+msgstr "Croatia"
+
+#: src/Admin/Settings.php:190
+msgid "Cuba"
+msgstr "Cuba"
+
+#: src/Admin/Settings.php:191
+msgid "Cyprus"
+msgstr "Cyprus"
+
+#: src/Admin/Settings.php:192
+msgid "Czech Republic"
+msgstr "Czech Republic"
+
+#: src/Admin/Settings.php:193
+msgid "Denmark"
+msgstr "Denmark"
+
+#: src/Admin/Settings.php:194
+msgid "Djibouti"
+msgstr "Djibouti"
+
+#: src/Admin/Settings.php:195
+msgid "Dominican Republic"
+msgstr "Dominican Republic"
+
+#: src/Admin/Settings.php:196
+msgid "Ecuador"
+msgstr "Ecuador"
+
+#: src/Admin/Settings.php:197
+msgid "Egypt"
+msgstr "Egypt"
+
+#: src/Admin/Settings.php:198
+msgid "El Salvador"
+msgstr "El Salvador"
+
+#: src/Admin/Settings.php:199
+msgid "Equatorial Guinea"
+msgstr "Equatorial Guinea"
+
+#: src/Admin/Settings.php:200
+msgid "Eritrea"
+msgstr "Eritrea"
+
+#: src/Admin/Settings.php:201
+msgid "Estonia"
+msgstr "Estonia"
+
+#: src/Admin/Settings.php:202
+msgid "Eswatini"
+msgstr "Eswatini"
+
+#: src/Admin/Settings.php:203
+msgid "Ethiopia"
+msgstr "Ethiopia"
+
+#: src/Admin/Settings.php:204
+msgid "Fiji"
+msgstr "Fiji"
+
+#: src/Admin/Settings.php:205
+msgid "Finland"
+msgstr "Finland"
+
+#: src/Admin/Settings.php:206
+msgid "France"
+msgstr "France"
+
+#: src/Admin/Settings.php:207
+msgid "Gabon"
+msgstr "Gabon"
+
+#: src/Admin/Settings.php:208
+msgid "Gambia"
+msgstr "Gambia"
+
+#: src/Admin/Settings.php:209
+msgid "Georgia"
+msgstr "Georgia"
+
+#: src/Admin/Settings.php:210
+msgid "Germany"
+msgstr "Germany"
+
+#: src/Admin/Settings.php:211
+msgid "Ghana"
+msgstr "Ghana"
+
+#: src/Admin/Settings.php:212
+msgid "Greece"
+msgstr "Greece"
+
+#: src/Admin/Settings.php:213
+msgid "Guatemala"
+msgstr "Guatemala"
+
+#: src/Admin/Settings.php:214
+msgid "Guinea"
+msgstr "Guinea"
+
+#: src/Admin/Settings.php:215
+msgid "Guinea-Bissau"
+msgstr "Guinea-Bissau"
+
+#: src/Admin/Settings.php:216
+msgid "Guyana"
+msgstr "Guyana"
+
+#: src/Admin/Settings.php:217
+msgid "Haiti"
+msgstr "Haiti"
+
+#: src/Admin/Settings.php:218
+msgid "Honduras"
+msgstr "Honduras"
+
+#: src/Admin/Settings.php:219
+msgid "Hong Kong"
+msgstr "Hong Kong"
+
+#: src/Admin/Settings.php:220
+msgid "Hungary"
+msgstr "Hungary"
+
+#: src/Admin/Settings.php:221
+msgid "Iceland"
+msgstr "Iceland"
+
+#: src/Admin/Settings.php:222
+msgid "India"
+msgstr "India"
+
+#: src/Admin/Settings.php:223
+msgid "Indonesia"
+msgstr "Indonesia"
+
+#: src/Admin/Settings.php:224
+msgid "Iran"
+msgstr "Iran"
+
+#: src/Admin/Settings.php:225
+msgid "Iraq"
+msgstr "Iraq"
+
+#: src/Admin/Settings.php:226
+msgid "Ireland"
+msgstr "Ireland"
+
+#: src/Admin/Settings.php:227
+msgid "Israel"
+msgstr "Israel"
+
+#: src/Admin/Settings.php:228
+msgid "Italy"
+msgstr "Italy"
+
+#: src/Admin/Settings.php:229
+msgid "Ivory Coast"
+msgstr "Ivory Coast"
+
+#: src/Admin/Settings.php:230
+msgid "Jamaica"
+msgstr "Jamaica"
+
+#: src/Admin/Settings.php:231
+msgid "Japan"
+msgstr "Japan"
+
+#: src/Admin/Settings.php:232
+msgid "Jordan"
+msgstr "Jordan"
+
+#: src/Admin/Settings.php:233
+msgid "Kazakhstan"
+msgstr "Kazakhstan"
+
+#: src/Admin/Settings.php:234
+msgid "Kenya"
+msgstr "Kenya"
+
+#: src/Admin/Settings.php:235
+msgid "Kiribati"
+msgstr "Kiribati"
+
+#: src/Admin/Settings.php:236
+msgid "Kuwait"
+msgstr "Kuwait"
+
+#: src/Admin/Settings.php:237
+msgid "Kyrgyzstan"
+msgstr "Kyrgyzstan"
+
+#: src/Admin/Settings.php:238
+msgid "Laos"
+msgstr "Laos"
+
+#: src/Admin/Settings.php:239
+msgid "Latvia"
+msgstr "Latvia"
+
+#: src/Admin/Settings.php:240
+msgid "Lebanon"
+msgstr "Lebanon"
+
+#: src/Admin/Settings.php:241
+msgid "Lesotho"
+msgstr "Lesotho"
+
+#: src/Admin/Settings.php:242
+msgid "Liberia"
+msgstr "Liberia"
+
+#: src/Admin/Settings.php:243
+msgid "Libya"
+msgstr "Libya"
+
+#: src/Admin/Settings.php:244
+msgid "Liechtenstein"
+msgstr "Liechtenstein"
+
+#: src/Admin/Settings.php:245
+msgid "Lithuania"
+msgstr "Lithuania"
+
+#: src/Admin/Settings.php:246
+msgid "Luxembourg"
+msgstr "Luxembourg"
+
+#: src/Admin/Settings.php:247
+msgid "Macao"
+msgstr "Macao"
+
+#: src/Admin/Settings.php:248
+msgid "Madagascar"
+msgstr "Madagascar"
+
+#: src/Admin/Settings.php:249
+msgid "Malawi"
+msgstr "Malawi"
+
+#: src/Admin/Settings.php:250
+msgid "Malaysia"
+msgstr "Malaysia"
+
+#: src/Admin/Settings.php:251
+msgid "Maldives"
+msgstr "Maldives"
+
+#: src/Admin/Settings.php:252
+msgid "Mali"
+msgstr "Mali"
+
+#: src/Admin/Settings.php:253
+msgid "Malta"
+msgstr "Malta"
+
+#: src/Admin/Settings.php:254
+msgid "Marshall Islands"
+msgstr "Marshall Islands"
+
+#: src/Admin/Settings.php:255
+msgid "Mauritania"
+msgstr "Mauritania"
+
+#: src/Admin/Settings.php:256
+msgid "Mauritius"
+msgstr "Mauritius"
+
+#: src/Admin/Settings.php:257
+msgid "Mexico"
+msgstr "Mexico"
+
+#: src/Admin/Settings.php:258
+msgid "Micronesia"
+msgstr "Micronesia"
+
+#: src/Admin/Settings.php:259
+msgid "Moldova"
+msgstr "Moldova"
+
+#: src/Admin/Settings.php:260
+msgid "Monaco"
+msgstr "Monaco"
+
+#: src/Admin/Settings.php:261
+msgid "Mongolia"
+msgstr "Mongolia"
+
+#: src/Admin/Settings.php:262
+msgid "Montenegro"
+msgstr "Montenegro"
+
+#: src/Admin/Settings.php:263
+msgid "Morocco"
+msgstr "Morocco"
+
+#: src/Admin/Settings.php:264
+msgid "Mozambique"
+msgstr "Mozambique"
+
+#: src/Admin/Settings.php:265
+msgid "Myanmar"
+msgstr "Myanmar"
+
+#: src/Admin/Settings.php:266
+msgid "Namibia"
+msgstr "Namibia"
+
+#: src/Admin/Settings.php:267
+msgid "Nauru"
+msgstr "Nauru"
+
+#: src/Admin/Settings.php:268
+msgid "Nepal"
+msgstr "Nepal"
+
+#: src/Admin/Settings.php:269
+msgid "Netherlands"
+msgstr "Netherlands"
+
+#: src/Admin/Settings.php:270
+msgid "New Zealand"
+msgstr "New Zealand"
+
+#: src/Admin/Settings.php:271
+msgid "Nicaragua"
+msgstr "Nicaragua"
+
+#: src/Admin/Settings.php:272
+msgid "Niger"
+msgstr "Niger"
+
+#: src/Admin/Settings.php:273
+msgid "Nigeria"
+msgstr "Nigeria"
+
+#: src/Admin/Settings.php:274
+msgid "North Korea"
+msgstr "North Korea"
+
+#: src/Admin/Settings.php:275
+msgid "North Macedonia"
+msgstr "North Macedonia"
+
+#: src/Admin/Settings.php:276
+msgid "Norway"
+msgstr "Norway"
+
+#: src/Admin/Settings.php:277
+msgid "Oman"
+msgstr "Oman"
+
+#: src/Admin/Settings.php:278
+msgid "Pakistan"
+msgstr "Pakistan"
+
+#: src/Admin/Settings.php:279
+msgid "Palau"
+msgstr "Palau"
+
+#: src/Admin/Settings.php:280
+msgid "Palestine"
+msgstr "Palestine"
+
+#: src/Admin/Settings.php:281
+msgid "Panama"
+msgstr "Panama"
+
+#: src/Admin/Settings.php:282
+msgid "Papua New Guinea"
+msgstr "Papua New Guinea"
+
+#: src/Admin/Settings.php:283
+msgid "Paraguay"
+msgstr "Paraguay"
+
+#: src/Admin/Settings.php:284
+msgid "Peru"
+msgstr "Peru"
+
+#: src/Admin/Settings.php:285
+msgid "Philippines"
+msgstr "Philippines"
+
+#: src/Admin/Settings.php:286
+msgid "Poland"
+msgstr "Poland"
+
+#: src/Admin/Settings.php:287
+msgid "Portugal"
+msgstr "Portugal"
+
+#: src/Admin/Settings.php:288
+msgid "Qatar"
+msgstr "Qatar"
+
+#: src/Admin/Settings.php:289
+msgid "Romania"
+msgstr "Romania"
+
+#: src/Admin/Settings.php:290
+msgid "Russia"
+msgstr "Russia"
+
+#: src/Admin/Settings.php:291
+msgid "Rwanda"
+msgstr "Rwanda"
+
+#: src/Admin/Settings.php:292
+msgid "Saint Kitts and Nevis"
+msgstr "Saint Kitts and Nevis"
+
+#: src/Admin/Settings.php:293
+msgid "Saint Lucia"
+msgstr "Saint Lucia"
+
+#: src/Admin/Settings.php:294
+msgid "Saint Vincent and the Grenadines"
+msgstr "Saint Vincent and the Grenadines"
+
+#: src/Admin/Settings.php:295
+msgid "Samoa"
+msgstr "Samoa"
+
+#: src/Admin/Settings.php:296
+msgid "San Marino"
+msgstr "San Marino"
+
+#: src/Admin/Settings.php:297
+msgid "Sao Tome and Principe"
+msgstr "Sao Tome and Principe"
+
+#: src/Admin/Settings.php:298
+msgid "Saudi Arabia"
+msgstr "Saudi Arabia"
+
+#: src/Admin/Settings.php:299
+msgid "Senegal"
+msgstr "Senegal"
+
+#: src/Admin/Settings.php:300
+msgid "Serbia"
+msgstr "Serbia"
+
+#: src/Admin/Settings.php:301
+msgid "Seychelles"
+msgstr "Seychelles"
+
+#: src/Admin/Settings.php:302
+msgid "Sierra Leone"
+msgstr "Sierra Leone"
+
+#: src/Admin/Settings.php:303
+msgid "Singapore"
+msgstr "Singapore"
+
+#: src/Admin/Settings.php:304
+msgid "Slovakia"
+msgstr "Slovakia"
+
+#: src/Admin/Settings.php:305
+msgid "Slovenia"
+msgstr "Slovenia"
+
+#: src/Admin/Settings.php:306
+msgid "Solomon Islands"
+msgstr "Solomon Islands"
+
+#: src/Admin/Settings.php:307
+msgid "Somalia"
+msgstr "Somalia"
+
+#: src/Admin/Settings.php:308
+msgid "South Africa"
+msgstr "South Africa"
+
+#: src/Admin/Settings.php:309
+msgid "South Korea"
+msgstr "South Korea"
+
+#: src/Admin/Settings.php:310
+msgid "South Sudan"
+msgstr "South Sudan"
+
+#: src/Admin/Settings.php:311
+msgid "Spain"
+msgstr "Spain"
+
+#: src/Admin/Settings.php:312
+msgid "Sri Lanka"
+msgstr "Sri Lanka"
+
+#: src/Admin/Settings.php:313
+msgid "Sudan"
+msgstr "Sudan"
+
+#: src/Admin/Settings.php:314
+msgid "Suriname"
+msgstr "Suriname"
+
+#: src/Admin/Settings.php:315
+msgid "Sweden"
+msgstr "Sweden"
+
+#: src/Admin/Settings.php:316
+msgid "Switzerland"
+msgstr "Switzerland"
+
+#: src/Admin/Settings.php:317
+msgid "Syria"
+msgstr "Syria"
+
+#: src/Admin/Settings.php:318
+msgid "Taiwan"
+msgstr "Taiwan"
+
+#: src/Admin/Settings.php:319
+msgid "Tajikistan"
+msgstr "Tajikistan"
+
+#: src/Admin/Settings.php:320
+msgid "Tanzania"
+msgstr "Tanzania"
+
+#: src/Admin/Settings.php:321
+msgid "Thailand"
+msgstr "Thailand"
+
+#: src/Admin/Settings.php:322
+msgid "Timor-Leste"
+msgstr "Timor-Leste"
+
+#: src/Admin/Settings.php:323
+msgid "Togo"
+msgstr "Togo"
+
+#: src/Admin/Settings.php:324
+msgid "Tonga"
+msgstr "Tonga"
+
+#: src/Admin/Settings.php:325
+msgid "Trinidad and Tobago"
+msgstr "Trinidad and Tobago"
+
+#: src/Admin/Settings.php:326
+msgid "Tunisia"
+msgstr "Tunisia"
+
+#: src/Admin/Settings.php:327
+msgid "Turkey"
+msgstr "Turkey"
+
+#: src/Admin/Settings.php:328
+msgid "Turkmenistan"
+msgstr "Turkmenistan"
+
+#: src/Admin/Settings.php:329
+msgid "Tuvalu"
+msgstr "Tuvalu"
+
+#: src/Admin/Settings.php:330
+msgid "Uganda"
+msgstr "Uganda"
+
+#: src/Admin/Settings.php:331
+msgid "Ukraine"
+msgstr "Ukraine"
+
+#: src/Admin/Settings.php:332
+msgid "United Arab Emirates"
+msgstr "United Arab Emirates"
+
+#: src/Admin/Settings.php:333
+msgid "United Kingdom"
+msgstr "United Kingdom"
+
+#: src/Admin/Settings.php:334
+msgid "United States"
+msgstr "United States"
+
+#: src/Admin/Settings.php:335
+msgid "Uruguay"
+msgstr "Uruguay"
+
+#: src/Admin/Settings.php:336
+msgid "Uzbekistan"
+msgstr "Uzbekistan"
+
+#: src/Admin/Settings.php:337
+msgid "Vanuatu"
+msgstr "Vanuatu"
+
+#: src/Admin/Settings.php:338
+msgid "Vatican City"
+msgstr "Vatican City"
+
+#: src/Admin/Settings.php:339
+msgid "Venezuela"
+msgstr "Venezuela"
+
+#: src/Admin/Settings.php:340
+msgid "Vietnam"
+msgstr "Vietnam"
+
+#: src/Admin/Settings.php:341
+msgid "Yemen"
+msgstr "Yemen"
+
+#: src/Admin/Settings.php:342
+msgid "Zambia"
+msgstr "Zambia"
+
+#: src/Admin/Settings.php:343
+msgid "Zimbabwe"
+msgstr "Zimbabwe"
+
+#. Checkout validation messages
+#: src/Checkout/BillingPhoneValidator.php:114
+msgid "Number must contain country prefix."
+msgstr "Number must contain country prefix."
+
+#: src/Checkout/BillingPhoneValidator.php:118
+msgid "Please enter a valid phone number."
+msgstr "Please enter a valid phone number."
+
+#: src/Checkout/ShippingPhoneValidator.php:114
+msgid "Shipping phone number must contain country prefix."
+msgstr "Shipping phone number must contain country prefix."
+
+#: src/Checkout/ShippingPhoneValidator.php:118
+msgid "Please enter a valid shipping phone number."
+msgstr "Please enter a valid shipping phone number."
+
+#. Phone validation error messages
+#: src/Validation/PhoneValidator.php:42
+msgid "Phone number cannot be empty."
+msgstr "Phone number cannot be empty."
+
+#: src/Validation/PhoneValidator.php:55
+msgid "Phone number must include international prefix (+)."
+msgstr "Phone number must include international prefix (+)."
+
+#: src/Validation/PhoneValidator.php:73
+msgid "The phone number is not valid."
+msgstr "The phone number is not valid."
+
+#: src/Validation/PhoneValidator.php:104
+msgid "Invalid country code."
+msgstr "Invalid country code."
+
+#: src/Validation/PhoneValidator.php:107
+msgid "The input does not appear to be a phone number."
+msgstr "The input does not appear to be a phone number."
+
+#: src/Validation/PhoneValidator.php:110
+msgid "Phone number is too short after country code."
+msgstr "Phone number is too short after country code."
+
+#: src/Validation/PhoneValidator.php:113
+msgid "Phone number is too short."
+msgstr "Phone number is too short."
+
+#: src/Validation/PhoneValidator.php:116
+msgid "Phone number is too long."
+msgstr "Phone number is too long."
+
+#: src/Validation/PhoneValidator.php:119
+msgid "Unable to parse phone number."
+msgstr "Unable to parse phone number."

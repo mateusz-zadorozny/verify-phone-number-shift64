@@ -49,6 +49,18 @@ if ( file_exists( $autoloader ) ) {
 	return;
 }
 
+// Load plugin text domain for translations.
+add_action(
+	'init',
+	function () {
+		load_plugin_textdomain(
+			'verify-phone-number-shift64',
+			false,
+			dirname( plugin_basename( __FILE__ ) ) . '/languages'
+		);
+	}
+);
+
 // Check WooCommerce dependency.
 add_action(
 	'plugins_loaded',
