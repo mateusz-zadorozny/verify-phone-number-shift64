@@ -5,7 +5,7 @@
     "license": "GPL-2.0-or-later",
     "require": {
         "php": ">=7.4",
-        "giggsey/libphonenumber-for-php": "^8.13"
+        "giggsey/libphonenumber-for-php-lite": "^8.13"
     },
     "require-dev": {
         "wp-cli/i18n-command": "^2"
