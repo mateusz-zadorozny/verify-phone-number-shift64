@@ -1,0 +1,25 @@
+{
+    "name": "shift64/verify-phone-number",
+    "description": "WordPress plugin for phone number validation using libphonenumber",
+    "type": "wordpress-plugin",
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": ">=7.4",
+        "giggsey/libphonenumber-for-php": "^8.13"
+    },
+    "require-dev": {
+        "wp-cli/i18n-command": "^2"
+    },
+    "autoload": {
+        "psr-4": {
+            "Shift64\\SmartPhoneValidation\\": "src/"
+        }
+    },
+    "scripts": {
+        "makepot": "wp i18n make-pot ."
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
+    }
+}
