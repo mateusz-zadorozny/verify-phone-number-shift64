@@ -13,3 +13,4 @@ dist/
 tasks/
 CLAUDE.md
 .claude/
+.vscode/

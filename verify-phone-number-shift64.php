@@ -30,10 +30,10 @@ define( 'SHIFT64_PHONE_VALIDATION_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SHIFT64_PHONE_VALIDATION_URL', plugin_dir_url( __FILE__ ) );
 
 // Load Composer autoloader.
-$autoloader = SHIFT64_PHONE_VALIDATION_PATH . 'vendor/autoload.php';
+$shift64_autoloader = SHIFT64_PHONE_VALIDATION_PATH . 'vendor/autoload.php';
 
-if ( file_exists( $autoloader ) ) {
-	require_once $autoloader;
+if ( file_exists( $shift64_autoloader ) ) {
+	require_once $shift64_autoloader;
 } else {
 	add_action(
 		'admin_notices',
