@@ -58,4 +58,14 @@
 	<rule ref="WordPress.Files.FileName.InvalidClassFileName">
 		<exclude-pattern>/verify-phone-number-shift64.php</exclude-pattern>
 	</rule>
+
+	<!-- Allow unused parameters required by WordPress/WooCommerce hook signatures -->
+	<rule ref="Generic.CodeAnalysis.UnusedFunctionParameter.FoundAfterLastUsed">
+		<exclude-pattern>/src/Checkout/*Validator.php</exclude-pattern>
+	</rule>
+
+	<!-- Allow common parameter names that are reserved keywords -->
+	<rule ref="Universal.NamingConventions.NoReservedKeywordParameterNames.defaultFound">
+		<severity>0</severity>
+	</rule>
 </ruleset>
