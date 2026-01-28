@@ -60,5 +60,8 @@ add_action(
 
 		// Initialize plugin settings.
 		Admin\Settings::init();
+
+		// Initialize checkout phone validation.
+		Checkout\BillingPhoneValidator::init();
 	}
 );
