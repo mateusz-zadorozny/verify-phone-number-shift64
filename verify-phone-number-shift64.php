@@ -63,5 +63,6 @@ add_action(
 
 		// Initialize checkout phone validation.
 		Checkout\BillingPhoneValidator::init();
+		Checkout\ShippingPhoneValidator::init();
 	}
 );
