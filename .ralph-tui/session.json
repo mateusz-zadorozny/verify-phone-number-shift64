@@ -3,10 +3,10 @@
   "sessionId": "fd6c76c4-00b8-4968-8681-383c7b17cd97",
   "status": "running",
   "startedAt": "2026-01-28T12:43:51.198Z",
-  "updatedAt": "2026-01-28T12:46:36.639Z",
-  "currentIteration": 0,
+  "updatedAt": "2026-01-28T12:48:11.525Z",
+  "currentIteration": 1,
   "maxIterations": 15,
-  "tasksCompleted": 0,
+  "tasksCompleted": 1,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -17,8 +17,8 @@
       {
         "id": "US-001",
         "title": "Project structure and autoloading",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "US-002",
@@ -76,7 +76,18 @@
       }
     ]
   },
-  "iterations": [],
+  "iterations": [
+    {
+      "iteration": 1,
+      "status": "completed",
+      "taskId": "US-001",
+      "taskTitle": "Project structure and autoloading",
+      "taskCompleted": true,
+      "durationMs": 152311,
+      "startedAt": "2026-01-28T12:44:04.324Z",
+      "endedAt": "2026-01-28T12:46:36.635Z"
+    }
+  ],
   "skippedTaskIds": [],
   "cwd": "/Users/mateuszzadorozny/Local Sites/b2b-king/app/public/wp-content/plugins/verify-phone-number-shift64",
   "activeTaskIds": [],
