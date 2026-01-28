@@ -1,3 +1,10 @@
+## [1.1.2](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.1.1...v1.1.2) (2026-01-28)
+
+
+### Bug Fixes
+
+* **ci:** exclude false positive PHPCS warnings ([8a1195e](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/8a1195e551164018ba129099fca93356e825ea9b))
+
 ## [1.1.1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.1.0...v1.1.1) (2026-01-28)
 
 
