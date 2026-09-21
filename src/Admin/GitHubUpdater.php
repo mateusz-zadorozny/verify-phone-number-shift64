@@ -60,6 +60,16 @@ class GitHubUpdater {
 	const ERROR_CACHE_DURATION = 3600;
 
 	/**
+	 * Minimum PHP version of the published releases.
+	 *
+	 * WordPress reads it from the update data and does not offer the update to
+	 * sites running an older PHP - keep it in sync with the plugin header.
+	 *
+	 * @var string
+	 */
+	const REQUIRES_PHP = '8.3';
+
+	/**
 	 * Plugin file relative to the plugins directory, as WordPress knows it.
 	 *
 	 * Derived at runtime: the plugin may live in any directory (git clone,
@@ -123,7 +133,7 @@ class GitHubUpdater {
 			'banners'      => array(),
 			'tested'       => '',
 			'requires'     => '5.0',
-			'requires_php' => '7.4',
+			'requires_php' => self::REQUIRES_PHP,
 		);
 
 		return $transient;
@@ -164,7 +174,7 @@ class GitHubUpdater {
 			'download_link'  => $download_url,
 			'requires'       => '5.0',
 			'tested'         => '',
-			'requires_php'   => '7.4',
+			'requires_php'   => self::REQUIRES_PHP,
 			'sections'       => array(
 				'description' => 'Smart phone number validation and formatting for WordPress using Google\'s libphonenumber library.',
 				'changelog'   => self::format_changelog( $release_info['body'] ?? '' ),

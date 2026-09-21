@@ -8,7 +8,7 @@
  * Text Domain:     verify-phone-number-shift64
  * Domain Path:     /languages
  * Version:         1.3.3
- * Requires PHP:    7.4
+ * Requires PHP:    8.3
  * Requires at least: 5.0
  * Requires Plugins: woocommerce
  * WC requires at least: 7.2

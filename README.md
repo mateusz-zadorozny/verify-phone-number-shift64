@@ -1,6 +1,6 @@
 # Verify Phone Number Shift64
 
-Phone number validation and formatting for WooCommerce checkout, powered by Google's [libphonenumber](https://github.com/giggsey/libphonenumber-for-php-lite).
+Phone number validation and formatting for WooCommerce checkout, powered by Google's [libphonenumber](https://github.com/giggsey/libphonenumber-for-php-lite) (v9).
 
 The plugin checks billing and shipping phone numbers when an order is placed, rejects numbers that are not real for the given country, and (optionally) rewrites valid numbers into one consistent format before they are stored on the order.
 
@@ -20,7 +20,7 @@ The plugin checks billing and shipping phone numbers when an order is placed, re
 
 - WordPress 5.0+
 - WooCommerce 7.2+ (declared compatible with High-Performance Order Storage and Cart & Checkout blocks)
-- PHP 7.4+
+- PHP 8.3+
 
 ## Installation
 
