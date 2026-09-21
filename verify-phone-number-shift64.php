@@ -130,7 +130,8 @@ function shift64_phone_validation_deactivate(): void {
 	remove_action( 'woocommerce_checkout_create_order', array( Checkout\ShippingPhoneValidator::class, 'format_shipping_phone_on_order' ), 10 );
 
 	// Remove BlockCheckoutValidator hooks.
-	remove_action( 'woocommerce_store_api_checkout_order_processed', array( Checkout\BlockCheckoutValidator::class, 'validate_phones' ), 10 );
+	remove_action( Checkout\BlockCheckoutValidator::HOOK_UPDATE_ORDER, array( Checkout\BlockCheckoutValidator::class, 'validate_on_update_order' ), 10 );
+	remove_action( Checkout\BlockCheckoutValidator::HOOK_ORDER_PROCESSED, array( Checkout\BlockCheckoutValidator::class, 'validate_on_order_processed' ), 10 );
 
 	// Remove Assets hooks.
 	remove_action( 'wp_enqueue_scripts', array( Checkout\Assets::class, 'enqueue_checkout_scripts' ) );

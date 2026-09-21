@@ -63,7 +63,7 @@ raw input ──► Normalizer ──► PhoneValidator ──► ValidationResu
 | Checkout type | Validation hook | Formatting hook |
 | --- | --- | --- |
 | Classic | `woocommerce_after_checkout_validation` | `woocommerce_checkout_create_order` |
-| Block (Store API) | `woocommerce_store_api_checkout_order_processed` (throws `RouteException`, HTTP 400) | same hook, then `$order->save()` |
+| Block (Store API) | `woocommerce_store_api_checkout_update_order_from_request`, **POST (place order) only** – throws `RouteException`, HTTP 400 with `field` and error `code` | same hook; WooCommerce saves the order |
 
 Code layout:
 

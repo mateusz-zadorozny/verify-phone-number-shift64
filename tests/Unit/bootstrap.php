@@ -83,4 +83,53 @@ if ( ! class_exists( 'WP_Error' ) ) {
 	}
 }
 
+// --- Stubs used by the block checkout tests ----------------------------------
+$GLOBALS['shift64_test_locale'] = array(
+	'current'  => 'en_US',
+	'switches' => array(),
+);
+
+if ( ! function_exists( 'get_locale' ) ) {
+	function get_locale() {
+		return $GLOBALS['shift64_test_locale']['current'];
+	}
+	function determine_locale() {
+		return $GLOBALS['shift64_test_locale']['current'];
+	}
+	function switch_to_locale( $locale ) {
+		$GLOBALS['shift64_test_locale']['switches'][] = $GLOBALS['shift64_test_locale']['current'];
+		$GLOBALS['shift64_test_locale']['current']    = $locale;
+		return true;
+	}
+	function restore_previous_locale() {
+		$GLOBALS['shift64_test_locale']['current'] = array_pop( $GLOBALS['shift64_test_locale']['switches'] );
+		return $GLOBALS['shift64_test_locale']['current'];
+	}
+	function get_available_languages() {
+		return array( 'pl_PL', 'de_DE' );
+	}
+	function home_url( $path = '' ) {
+		return 'https://shop.test' . $path;
+	}
+	function unload_textdomain( $domain ) {
+		return true;
+	}
+	function load_plugin_textdomain( $domain, $deprecated = false, $rel_path = false ) {
+		return true;
+	}
+	function esc_html( $text ) {
+		return $text;
+	}
+	function esc_url_raw( $url ) {
+		return $url;
+	}
+	function wp_unslash( $value ) {
+		return $value;
+	}
+	function wp_parse_url( $url, $component = -1 ) {
+		return parse_url( $url, $component );
+	}
+}
+
+require_once __DIR__ . '/stubs-woocommerce.php';
 require_once __DIR__ . '/TestCase.php';
