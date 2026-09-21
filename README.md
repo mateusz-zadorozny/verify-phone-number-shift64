@@ -9,7 +9,7 @@ The plugin checks billing and shipping phone numbers when an order is placed, re
 - Validates **billing** and **shipping** phone numbers (shipping phone is optional – validated only when filled in)
 - Works with both **classic checkout** (shortcode) and **block checkout** (Store API)
 - Uses the address country as parsing context – `600 123 456` with country `PL` is understood as `+48600123456`
-- Input normalization: spaces, dashes, dots and parentheses are stripped, a leading `00` is treated as `+`
+- Input normalization: spaces (including non-breaking ones pasted from documents), dashes, dots, slashes and parentheses are stripped, a leading `00` is treated as `+`
 - Two validation modes: *default country + international* or *international only* (number must start with `+`)
 - Output formats: E.164 (`+48600123456`), international (`+48 600 123 456`), national (`600 123 456`)
 - Highlights the offending phone field on checkout (small JS helpers, no build step; can be switched off for themes with their own error UX)
@@ -51,7 +51,7 @@ composer install --no-dev --optimize-autoloader
 | Output Format | `shift64_phone_validation_output_format` | `E164` | `E164`, `INTERNATIONAL` or `NATIONAL` |
 | Enable Formatting on Save | `shift64_phone_validation_format_on_save` | `yes` | Rewrite valid numbers to the output format before saving the order |
 
-Settings are stored as regular `wp_options` rows and are kept on deactivation.
+Settings are stored as regular `wp_options` rows. They are kept on deactivation and removed when the plugin is deleted (`uninstall.php`); phone numbers already saved on orders are never touched.
 
 ## Country context
 

@@ -16,9 +16,7 @@
         "assets": [
           "CHANGELOG.md",
           "verify-phone-number-shift64.php",
-          "readme.txt",
-          "package.json",
-          "package-lock.json"
+          "readme.txt"
         ],
         "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
       }

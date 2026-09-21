@@ -107,34 +107,13 @@ add_action(
 /**
  * Plugin deactivation callback.
  *
- * Removes all validation hooks to restore default WooCommerce behavior.
- * Note: Settings are intentionally NOT deleted to preserve configuration for reactivation.
+ * Hooks live for a single request, so there is nothing to unhook - only cached data is cleared.
+ * Settings are intentionally NOT deleted here (see uninstall.php) so they survive reactivation.
  *
  * @return void
  */
 function shift64_phone_validation_deactivate(): void {
-	// Clear GitHub updater cache.
 	Admin\GitHubUpdater::clear_cache();
-
-	// Remove Settings hooks.
-	remove_filter( 'woocommerce_settings_tabs_array', array( Admin\Settings::class, 'add_settings_tab' ), 50 );
-	remove_action( 'woocommerce_settings_tabs_' . Admin\Settings::TAB_ID, array( Admin\Settings::class, 'render_settings_page' ) );
-	remove_action( 'woocommerce_update_options_' . Admin\Settings::TAB_ID, array( Admin\Settings::class, 'save_settings' ) );
-
-	// Remove BillingPhoneValidator hooks.
-	remove_action( 'woocommerce_after_checkout_validation', array( Checkout\BillingPhoneValidator::class, 'validate_billing_phone' ), 10 );
-	remove_action( 'woocommerce_checkout_create_order', array( Checkout\BillingPhoneValidator::class, 'format_billing_phone_on_order' ), 10 );
-
-	// Remove ShippingPhoneValidator hooks.
-	remove_action( 'woocommerce_after_checkout_validation', array( Checkout\ShippingPhoneValidator::class, 'validate_shipping_phone' ), 10 );
-	remove_action( 'woocommerce_checkout_create_order', array( Checkout\ShippingPhoneValidator::class, 'format_shipping_phone_on_order' ), 10 );
-
-	// Remove BlockCheckoutValidator hooks.
-	remove_action( Checkout\BlockCheckoutValidator::HOOK_UPDATE_ORDER, array( Checkout\BlockCheckoutValidator::class, 'validate_on_update_order' ), 10 );
-	remove_action( Checkout\BlockCheckoutValidator::HOOK_ORDER_PROCESSED, array( Checkout\BlockCheckoutValidator::class, 'validate_on_order_processed' ), 10 );
-
-	// Remove Assets hooks.
-	remove_action( 'wp_enqueue_scripts', array( Checkout\Assets::class, 'enqueue_checkout_scripts' ) );
 }
 
 // Register deactivation hook.

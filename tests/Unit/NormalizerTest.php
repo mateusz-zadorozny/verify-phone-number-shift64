@@ -23,6 +23,10 @@ class NormalizerTest extends TestCase {
 			'prefix in parentheses' => array( '(+48) 600 100 200', '+48600100200' ),
 			'surrounding whitespace' => array( "  600100200\n", '600100200' ),
 			'00 becomes plus'       => array( '0048 600 100 200', '+48600100200' ),
+			'slashes'               => array( '22/410-05-00', '224100500' ),
+			'non-breaking space'    => array( "600\u{00A0}100\u{00A0}200", '600100200' ),
+			'narrow nbsp'           => array( "+48\u{202F}600\u{202F}100\u{202F}200", '+48600100200' ),
+			'invalid utf-8 is kept' => array( "600 100\xff200", "600100\xff200" ),
 			'empty'                 => array( '', '' ),
 			'only separators'       => array( ' - ( ) . ', '' ),
 		);
