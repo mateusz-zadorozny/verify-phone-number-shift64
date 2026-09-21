@@ -60,6 +60,18 @@ class GitHubUpdater {
 	const ERROR_CACHE_DURATION = 3600;
 
 	/**
+	 * Plugin file relative to the plugins directory, as WordPress knows it.
+	 *
+	 * Derived at runtime: the plugin may live in any directory (git clone,
+	 * source download as "...-master"), not only in the default slug.
+	 *
+	 * @return string E.g. "verify-phone-number-shift64/verify-phone-number-shift64.php".
+	 */
+	public static function get_plugin_file(): string {
+		return plugin_basename( SHIFT64_PHONE_VALIDATION_FILE );
+	}
+
+	/**
 	 * Initialize updater hooks.
 	 *
 	 * @return void
@@ -90,7 +102,7 @@ class GitHubUpdater {
 		}
 
 		$new_version = self::normalize_version( $release_info['tag_name'] );
-		$plugin_file = self::PLUGIN_SLUG . '/verify-phone-number-shift64.php';
+		$plugin_file = self::get_plugin_file();
 
 		if ( ! self::is_update_available( $new_version ) ) {
 			return $transient;
@@ -164,8 +176,9 @@ class GitHubUpdater {
 	/**
 	 * Fix the extracted folder name from GitHub releases.
 	 *
-	 * GitHub extracts zips into folders named "repo-version", but WordPress
-	 * expects the folder to match the plugin slug.
+	 * The release zip unpacks into the default slug directory. WordPress replaces
+	 * the installed plugin only when the folder name matches the directory the
+	 * plugin currently lives in, so the unpacked folder is renamed to that.
 	 *
 	 * @param string       $source        File source location.
 	 * @param string       $remote_source Remote file source location.
@@ -181,19 +194,27 @@ class GitHubUpdater {
 			return $source;
 		}
 
-		$plugin_file = self::PLUGIN_SLUG . '/verify-phone-number-shift64.php';
-		if ( $hook_extra['plugin'] !== $plugin_file ) {
+		if ( self::get_plugin_file() !== $hook_extra['plugin'] ) {
 			return $source;
 		}
+
+		// Directory the plugin is installed in right now.
+		$installed_dir = dirname( self::get_plugin_file() );
 
 		// Check if source directory needs renaming.
-		$source_base = basename( $source );
-		if ( self::PLUGIN_SLUG === $source_base ) {
+		if ( basename( $source ) === $installed_dir ) {
 			return $source;
 		}
 
-		// Rename to expected plugin slug.
-		$corrected_source = trailingslashit( $remote_source ) . self::PLUGIN_SLUG . '/';
+		if ( ! $wp_filesystem ) {
+			return new \WP_Error(
+				'filesystem_unavailable',
+				__( 'Failed to rename plugin directory.', 'verify-phone-number-shift64' )
+			);
+		}
+
+		// Rename to the installed directory name.
+		$corrected_source = trailingslashit( $remote_source ) . $installed_dir . '/';
 		if ( $wp_filesystem->move( $source, $corrected_source ) ) {
 			return $corrected_source;
 		}
