@@ -353,17 +353,42 @@ class GitHubUpdater {
 			return '<p>' . __( 'No changelog available.', 'verify-phone-number-shift64' ) . '</p>';
 		}
 
-		// Basic markdown to HTML conversion.
-		$changelog = esc_html( $body );
-		$changelog = nl2br( $changelog );
+		// Basic markdown to HTML conversion, line by line: headings, list items, paragraphs.
+		$html    = '';
+		$in_list = false;
 
-		// Convert markdown headers.
-		$changelog = preg_replace( '/^### (.+)$/m', '<h4>$1</h4>', $changelog );
-		$changelog = preg_replace( '/^## (.+)$/m', '<h3>$1</h3>', $changelog );
+		foreach ( preg_split( '/\r\n|\r|\n/', $body ) as $line ) {
+			$line    = trim( $line );
+			$is_item = (bool) preg_match( '/^[\*\-] (.+)$/', $line, $item );
 
-		// Convert markdown lists.
-		$changelog = preg_replace( '/^\* (.+)$/m', '<li>$1</li>', $changelog );
-		$changelog = preg_replace( '/^- (.+)$/m', '<li>$1</li>', $changelog );
+			if ( $in_list && ! $is_item ) {
+				$html   .= '</ul>';
+				$in_list = false;
+			}
+
+			if ( '' === $line ) {
+				continue;
+			}
+
+			if ( $is_item ) {
+				if ( ! $in_list ) {
+					$html   .= '<ul>';
+					$in_list = true;
+				}
+				$html .= '<li>' . esc_html( $item[1] ) . '</li>';
+			} elseif ( preg_match( '/^(#{1,3}) (.+)$/', $line, $heading ) ) {
+				$tag   = 3 === strlen( $heading[1] ) ? 'h4' : 'h3';
+				$html .= "<{$tag}>" . esc_html( $heading[2] ) . "</{$tag}>";
+			} else {
+				$html .= '<p>' . esc_html( $line ) . '</p>';
+			}
+		}
+
+		if ( $in_list ) {
+			$html .= '</ul>';
+		}
+
+		$changelog = $html;
 
 		return $changelog;
 	}

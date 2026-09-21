@@ -17,7 +17,8 @@ class Normalizer {
 	/**
 	 * Normalize a phone number string.
 	 *
-	 * Removes whitespace, dashes, parentheses, and dots.
+	 * Removes whitespace (including non-breaking spaces pasted from documents),
+	 * dashes, parentheses, dots and slashes.
 	 * Replaces '00' prefix with '+' for international format.
 	 * Trims the input.
 	 *
@@ -28,8 +29,13 @@ class Normalizer {
 		// Trim whitespace from beginning and end.
 		$normalized = trim( $phone_number );
 
-		// Remove whitespace, dashes, parentheses, and dots.
-		$normalized = preg_replace( '/[\s\-\(\)\.]+/', '', $normalized );
+		// Remove separators. The "u" flag makes \s cover non-breaking spaces, but it returns
+		// null for invalid UTF-8 - fall back to the byte-wise pattern in that case.
+		$stripped = preg_replace( '/[\s\-\(\)\.\/]+/u', '', $normalized );
+		if ( null === $stripped ) {
+			$stripped = preg_replace( '/[\s\-\(\)\.\/]+/', '', $normalized );
+		}
+		$normalized = (string) $stripped;
 
 		// Replace '00' prefix with '+' for international format.
 		if ( 0 === strpos( $normalized, '00' ) ) {

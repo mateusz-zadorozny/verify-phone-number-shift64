@@ -113,4 +113,33 @@ class GitHubUpdaterTest extends TestCase {
 
 		$this->assertInstanceOf( \WP_Error::class, $result );
 	}
+
+	private function changelog( string $body ): string {
+		$this->cache_release( 'v9.9.9' );
+		$GLOBALS['shift64_test_transients'][ GitHubUpdater::TRANSIENT_KEY ]['body'] = $body;
+
+		$info = GitHubUpdater::plugin_info( false, 'plugin_information', (object) array( 'slug' => GitHubUpdater::PLUGIN_SLUG ) );
+
+		return $info->sections['changelog'];
+	}
+
+	public function test_release_notes_are_converted_to_clean_html(): void {
+		$body = "## [1.2.0](https://example.test) (2026-09-21)\r\n\r\n### Features\r\n\r\n* add filters\r\n* add helper\r\n\r\n### Bug Fixes\n\n- one fix\nplain line";
+
+		$this->assertSame(
+			'<h3>[1.2.0](https://example.test) (2026-09-21)</h3>'
+			. '<h4>Features</h4><ul><li>add filters</li><li>add helper</li></ul>'
+			. '<h4>Bug Fixes</h4><ul><li>one fix</li></ul><p>plain line</p>',
+			$this->changelog( $body )
+		);
+	}
+
+	public function test_empty_release_notes(): void {
+		$this->assertSame( '<p>No changelog available.</p>', $this->changelog( '' ) );
+	}
+
+	public function test_plugin_info_ignores_other_plugins(): void {
+		$this->assertFalse( GitHubUpdater::plugin_info( false, 'plugin_information', (object) array( 'slug' => 'other' ) ) );
+		$this->assertFalse( GitHubUpdater::plugin_info( false, 'query_plugins', (object) array() ) );
+	}
 }
