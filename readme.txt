@@ -41,6 +41,10 @@ WooCommerce > Settings > Phone Validation tab.
 
 The plugin was installed from a source archive. Install the release ZIP instead, or run `composer install --no-dev` in the plugin directory.
 
+= Which country is used for numbers without a prefix? =
+
+The country of the billing / shipping address. The "Default Country" setting is only a fallback for addresses without a country. Numbers typed with "+" or "00" are always validated internationally. Note that a number without a prefix is checked against the address country only - e.g. a Polish mobile next to a German address can be a valid German number. Stores selling abroad should consider the "International only" mode.
+
 = Is the shipping phone required? =
 
 No. It is validated only when the customer fills it in.

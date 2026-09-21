@@ -59,7 +59,7 @@ msgid "Default Country"
 msgstr ""
 
 #: src/Admin/Settings.php:94
-msgid "Select the default country code for phone validation."
+msgid "Used for numbers entered without \"+\" only when the address has no country. Otherwise the number is read in the country of the billing / shipping address."
 msgstr ""
 
 #: src/Admin/Settings.php:103

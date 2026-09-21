@@ -46,12 +46,26 @@ composer install --no-dev --optimize-autoloader
 | Setting | Option name | Default | Description |
 | --- | --- | --- | --- |
 | Enable Validation | `shift64_phone_validation_enabled` | `yes` | Master switch for validation and formatting |
-| Default Country | `shift64_phone_validation_default_country` | `PL` | Region used for numbers without `+` **when the address has no country** |
+| Default Country | `shift64_phone_validation_default_country` | `PL` | Fallback only: region used for numbers without `+` **when the address has no country**. See [Country context](#country-context) |
 | Validation Mode | `shift64_phone_validation_validation_mode` | `default_and_international` | `international_only` rejects every number without a `+` prefix |
 | Output Format | `shift64_phone_validation_output_format` | `E164` | `E164`, `INTERNATIONAL` or `NATIONAL` |
 | Enable Formatting on Save | `shift64_phone_validation_format_on_save` | `yes` | Rewrite valid numbers to the output format before saving the order |
 
 Settings are stored as regular `wp_options` rows and are kept on deactivation.
+
+## Country context
+
+A number typed **with** a prefix (`+48…` or `0048…`) is unambiguous and is validated as such, whatever the address says.
+
+A number typed **without** a prefix is read in the country of the billing / shipping address; the *Default Country* setting is used only when the address has no country. The library checks whether the digits form a valid number *in that country* – it cannot know whose number it is:
+
+| Input | Address country | Result |
+| --- | --- | --- |
+| `600 100 200` | PL | valid → `+48600100200` |
+| `600 100 200` | GB, CZ, US | rejected |
+| `600 100 200` | DE, FR | **valid** → stored as `+49600100200` / `+33600100200` |
+
+The last row is the limitation to be aware of on stores selling abroad: a customer with a foreign address and a domestic phone must type the prefix. If that is a concern, use the *International only* validation mode (every number must start with `+`), or tell customers in the field description to include the prefix. Single-country stores are not affected.
 
 ## How it works
 

@@ -91,7 +91,7 @@ class Settings {
 			),
 			array(
 				'title'    => __( 'Default Country', 'verify-phone-number-shift64' ),
-				'desc'     => __( 'Select the default country code for phone validation.', 'verify-phone-number-shift64' ),
+				'desc'     => __( 'Used for numbers entered without "+" only when the address has no country. Otherwise the number is read in the country of the billing / shipping address.', 'verify-phone-number-shift64' ),
 				'id'       => self::OPTION_PREFIX . 'default_country',
 				'default'  => 'PL',
 				'type'     => 'select',
