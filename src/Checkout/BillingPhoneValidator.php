@@ -10,7 +10,6 @@ declare(strict_types=1);
 namespace Shift64\SmartPhoneValidation\Checkout;
 
 use Shift64\SmartPhoneValidation\Admin\Settings;
-use Shift64\SmartPhoneValidation\Formatter\PhoneFormatter;
 use Shift64\SmartPhoneValidation\Validation\PhoneValidator;
 
 /**
@@ -58,6 +57,10 @@ class BillingPhoneValidator {
 		// Use billing country if provided, otherwise use default from settings.
 		$country_code = ! empty( $billing_country ) ? $billing_country : null;
 
+		if ( ! Hooks::should_validate( ErrorMessages::FIELD_BILLING, $data ) ) {
+			return;
+		}
+
 		// Validate the phone number.
 		$result = PhoneValidator::validate( $billing_phone, $country_code );
 
@@ -91,11 +94,15 @@ class BillingPhoneValidator {
 		$billing_country = $order->get_billing_country();
 		$country_code    = ! empty( $billing_country ) ? $billing_country : null;
 
+		if ( ! Hooks::should_validate( ErrorMessages::FIELD_BILLING, $data ) ) {
+			return;
+		}
+
 		// Validate and format the phone number.
 		$result = PhoneValidator::validate( $billing_phone, $country_code );
 
 		if ( $result->is_valid() ) {
-			$formatted = PhoneFormatter::format( $result->get_phone_number() );
+			$formatted = Hooks::format_for_order( $result->get_phone_number(), ErrorMessages::FIELD_BILLING, $order );
 			$order->set_billing_phone( $formatted );
 		}
 	}

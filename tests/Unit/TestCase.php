@@ -32,10 +32,15 @@ abstract class TestCase extends PHPUnitTestCase {
 		parent::setUp();
 		$GLOBALS['shift64_test_options']      = array();
 		$GLOBALS['shift64_test_translations'] = array();
+		$GLOBALS['shift64_test_filters']      = array();
 	}
 
 	protected function set_option( string $key, string $value ): void {
 		$GLOBALS['shift64_test_options'][ 'shift64_phone_validation_' . $key ] = $value;
+	}
+
+	protected function add_filter( string $hook, callable $callback ): void {
+		$GLOBALS['shift64_test_filters'][ $hook ] = $callback;
 	}
 
 	protected function use_polish(): void {

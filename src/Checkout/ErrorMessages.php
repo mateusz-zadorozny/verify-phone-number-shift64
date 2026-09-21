@@ -34,6 +34,20 @@ class ErrorMessages {
 	const FIELD_SHIPPING = 'shipping';
 
 	/**
+	 * Classic (shortcode) checkout.
+	 *
+	 * @var string
+	 */
+	const CONTEXT_CLASSIC = 'classic';
+
+	/**
+	 * Block checkout (Store API).
+	 *
+	 * @var string
+	 */
+	const CONTEXT_BLOCK = 'block';
+
+	/**
 	 * Get the message for classic checkout notices.
 	 *
 	 * @param string|null $error_code One of the ValidationResult::ERROR_* constants.
@@ -44,14 +58,16 @@ class ErrorMessages {
 		$is_missing_prefix = ValidationResult::ERROR_MISSING_INTERNATIONAL_PREFIX === $error_code;
 
 		if ( self::FIELD_SHIPPING === $field ) {
-			return $is_missing_prefix
+			$message = $is_missing_prefix
 				? __( 'Shipping phone number must contain country prefix.', 'verify-phone-number-shift64' )
 				: __( 'Please enter a valid shipping phone number.', 'verify-phone-number-shift64' );
+		} else {
+			$message = $is_missing_prefix
+				? __( 'Phone number must contain country prefix.', 'verify-phone-number-shift64' )
+				: __( 'Please enter a valid phone number.', 'verify-phone-number-shift64' );
 		}
 
-		return $is_missing_prefix
-			? __( 'Phone number must contain country prefix.', 'verify-phone-number-shift64' )
-			: __( 'Please enter a valid phone number.', 'verify-phone-number-shift64' );
+		return self::filter( $message, $error_code, $field, self::CONTEXT_CLASSIC );
 	}
 
 	/**
@@ -91,10 +107,35 @@ class ErrorMessages {
 
 		if ( ValidationResult::ERROR_MISSING_INTERNATIONAL_PREFIX === $error_code ) {
 			/* translators: %s: field label (Billing phone or Shipping phone) */
-			return sprintf( __( '%s must contain country prefix.', 'verify-phone-number-shift64' ), $field_label );
+			$message = sprintf( __( '%s must contain country prefix.', 'verify-phone-number-shift64' ), $field_label );
+		} else {
+			/* translators: %s: field label (Billing phone or Shipping phone) */
+			$message = sprintf( __( '%s is not a valid phone number.', 'verify-phone-number-shift64' ), $field_label );
 		}
 
-		/* translators: %s: field label (Billing phone or Shipping phone) */
-		return sprintf( __( '%s is not a valid phone number.', 'verify-phone-number-shift64' ), $field_label );
+		return self::filter( $message, $error_code, $field, self::CONTEXT_BLOCK );
+	}
+
+	/**
+	 * Let themes reword a customer-facing message.
+	 *
+	 * @param string      $message    Default translated message.
+	 * @param string|null $error_code One of the ValidationResult::ERROR_* constants.
+	 * @param string      $field      FIELD_BILLING or FIELD_SHIPPING.
+	 * @param string      $context    CONTEXT_CLASSIC or CONTEXT_BLOCK.
+	 * @return string
+	 */
+	private static function filter( string $message, ?string $error_code, string $field, string $context ): string {
+		/**
+		 * Filters the validation message shown to the customer.
+		 *
+		 * @param string      $message    Default translated message.
+		 * @param string|null $error_code Machine-readable reason, see ValidationResult::ERROR_*.
+		 * @param string      $field      'billing' or 'shipping'.
+		 * @param string      $context    'classic' or 'block'.
+		 */
+		$filtered = apply_filters( 'shift64_phone_validation_error_message', $message, $error_code, $field, $context );
+
+		return is_string( $filtered ) && '' !== $filtered ? $filtered : $message;
 	}
 }
