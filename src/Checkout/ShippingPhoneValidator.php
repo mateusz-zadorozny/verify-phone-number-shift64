@@ -44,6 +44,13 @@ class ShippingPhoneValidator {
 			return;
 		}
 
+		// Without "ship to a different address" WooCommerce fills shipping_* with copies
+		// of billing_* - the customer never saw a shipping phone field, and the billing
+		// validator already reports the number. Validating the copy doubles the notice.
+		if ( empty( $data['ship_to_different_address'] ) ) {
+			return;
+		}
+
 		// Get shipping phone from posted data.
 		$shipping_phone = isset( $data['shipping_phone'] ) ? $data['shipping_phone'] : '';
 
