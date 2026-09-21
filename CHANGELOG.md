@@ -1,3 +1,10 @@
+## [1.3.2](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.3.1...v1.3.2) (2026-09-21)
+
+
+### Bug Fixes
+
+* **admin:** describe what the default country setting really does ([#20](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/20)) ([ba5d9a1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/ba5d9a1bce779a7fab6e2ad1506e4841273c4057))
+
 ## [1.3.1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.3.0...v1.3.1) (2026-09-21)
 
 
