@@ -1,3 +1,10 @@
+## [1.2.1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.2.0...v1.2.1) (2026-09-21)
+
+
+### Bug Fixes
+
+* **checkout:** do not validate the shipping phone copied from billing ([#16](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/16)) ([b4ad2c8](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/b4ad2c84db54cc76ac0584845378e4b421c92185))
+
 # [1.2.0](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.1.4...v1.2.0) (2026-09-21)
 
 
