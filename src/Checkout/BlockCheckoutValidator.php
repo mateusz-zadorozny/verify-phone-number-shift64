@@ -13,6 +13,7 @@ use Automattic\WooCommerce\StoreApi\Exceptions\RouteException;
 use Shift64\SmartPhoneValidation\Admin\Settings;
 use Shift64\SmartPhoneValidation\Validation\PhoneValidator;
 use WC_Order;
+use WP_REST_Request;
 
 /**
  * Handles phone validation and formatting for WooCommerce block checkout (Store API).
@@ -20,116 +21,175 @@ use WC_Order;
 class BlockCheckoutValidator {
 
 	/**
+	 * Hook fired while the Store API copies request data onto the order (WooCommerce 7.2+).
+	 *
+	 * @var string
+	 */
+	const HOOK_UPDATE_ORDER = 'woocommerce_store_api_checkout_update_order_from_request';
+
+	/**
+	 * Legacy hook fired after the order was fully processed. Used before WooCommerce 7.2.
+	 *
+	 * @var string
+	 */
+	const HOOK_ORDER_PROCESSED = 'woocommerce_store_api_checkout_order_processed';
+
+	/**
+	 * Two-letter language codes (as used in URLs by multilingual plugins) to locales.
+	 *
+	 * @var array<string, string>
+	 */
+	const LOCALE_MAP = array(
+		'pl' => 'pl_PL',
+		'en' => 'en_US',
+		'de' => 'de_DE',
+		'fr' => 'fr_FR',
+		'es' => 'es_ES',
+		'it' => 'it_IT',
+		'nl' => 'nl_NL',
+		'pt' => 'pt_PT',
+		'ru' => 'ru_RU',
+	);
+
+	/**
 	 * Initialize block checkout validation hooks.
 	 *
 	 * @return void
 	 */
 	public static function init(): void {
-		// Only register if Store API is available (WooCommerce 5.3+).
+		// Only register if Store API is available.
 		if ( ! class_exists( 'Automattic\WooCommerce\StoreApi\Exceptions\RouteException' ) ) {
 			return;
 		}
 
-		// Validate phone numbers when order is processed via Store API.
-		add_action( 'woocommerce_store_api_checkout_order_processed', array( self::class, 'validate_phones' ), 10, 1 );
+		if ( defined( 'WC_VERSION' ) && version_compare( WC_VERSION, '7.2', '>=' ) ) {
+			// Validate as early as possible: before customer data is synced and payment is attempted.
+			add_action( self::HOOK_UPDATE_ORDER, array( self::class, 'validate_on_update_order' ), 10, 2 );
+			return;
+		}
+
+		add_action( self::HOOK_ORDER_PROCESSED, array( self::class, 'validate_on_order_processed' ), 10, 1 );
 	}
 
 	/**
-	 * Validate billing and shipping phone numbers during block checkout.
+	 * Validate when the Store API updates the order from the request.
+	 *
+	 * The hook also fires for PUT/PATCH requests sent while the customer is still
+	 * filling in the form. Only the place-order request (POST) is validated, otherwise
+	 * a half-typed number would be rejected. WooCommerce saves the order itself.
+	 *
+	 * @param WC_Order        $order   The order object.
+	 * @param WP_REST_Request $request The Store API request.
+	 * @return void
+	 * @throws RouteException When phone validation fails.
+	 */
+	public static function validate_on_update_order( $order, $request ): void {
+		if ( ! $request instanceof WP_REST_Request || 'POST' !== $request->get_method() ) {
+			return;
+		}
+
+		self::validate_phones( $order );
+	}
+
+	/**
+	 * Validate on the legacy hook, where the order has to be saved by us.
 	 *
 	 * @param WC_Order $order The order object.
 	 * @return void
 	 * @throws RouteException When phone validation fails.
 	 */
-	public static function validate_phones( WC_Order $order ): void {
-		// Only validate if plugin is enabled.
-		if ( ! Settings::is_validation_enabled() ) {
-			return;
-		}
-
-		// Ensure translations are loaded for REST API requests.
-		self::load_textdomain();
-
-		// Validate billing phone.
-		$billing_phone = $order->get_billing_phone();
-		if ( ! empty( $billing_phone ) && Hooks::should_validate( ErrorMessages::FIELD_BILLING, $order ) ) {
-			$billing_country = $order->get_billing_country();
-			$country_code    = ! empty( $billing_country ) ? $billing_country : null;
-
-			$result = PhoneValidator::validate( $billing_phone, $country_code );
-
-			if ( ! $result->is_valid() ) {
-				$error_message = ErrorMessages::for_block_checkout( $result->get_error_code(), ErrorMessages::FIELD_BILLING );
-				throw new RouteException(
-					'invalid_billing_phone',
-					esc_html( $error_message ),
-					400,
-					array(
-						'field' => 'billing_phone',
-						'code'  => esc_html( (string) $result->get_error_code() ),
-					)
-				);
-			}
-
-			// Format billing phone if enabled.
-			if ( Settings::is_format_on_save_enabled() ) {
-				$formatted = Hooks::format_for_order( $result->get_phone_number(), ErrorMessages::FIELD_BILLING, $order );
-				$order->set_billing_phone( $formatted );
-			}
-		}
-
-		// Validate shipping phone (only if filled - it's optional).
-		$shipping_phone = $order->get_shipping_phone();
-		if ( ! empty( $shipping_phone ) && Hooks::should_validate( ErrorMessages::FIELD_SHIPPING, $order ) ) {
-			$shipping_country = $order->get_shipping_country();
-			$country_code     = ! empty( $shipping_country ) ? $shipping_country : null;
-
-			$result = PhoneValidator::validate( $shipping_phone, $country_code );
-
-			if ( ! $result->is_valid() ) {
-				$error_message = ErrorMessages::for_block_checkout( $result->get_error_code(), ErrorMessages::FIELD_SHIPPING );
-				throw new RouteException(
-					'invalid_shipping_phone',
-					esc_html( $error_message ),
-					400,
-					array(
-						'field' => 'shipping_phone',
-						'code'  => esc_html( (string) $result->get_error_code() ),
-					)
-				);
-			}
-
-			// Format shipping phone if enabled.
-			if ( Settings::is_format_on_save_enabled() ) {
-				$formatted = Hooks::format_for_order( $result->get_phone_number(), ErrorMessages::FIELD_SHIPPING, $order );
-				$order->set_shipping_phone( $formatted );
-			}
-		}
-
-		// Save the order if phones were formatted.
-		if ( Settings::is_format_on_save_enabled() && ( ! empty( $billing_phone ) || ! empty( $shipping_phone ) ) ) {
+	public static function validate_on_order_processed( $order ): void {
+		if ( self::validate_phones( $order ) ) {
 			$order->save();
 		}
 	}
 
 	/**
-	 * Load plugin text domain for REST API requests.
+	 * Validate billing and shipping phone numbers and format the valid ones.
+	 *
+	 * @param WC_Order $order The order object.
+	 * @return bool Whether a phone number on the order was changed.
+	 * @throws RouteException When phone validation fails.
+	 */
+	public static function validate_phones( WC_Order $order ): bool {
+		// Only validate if plugin is enabled.
+		if ( ! Settings::is_validation_enabled() ) {
+			return false;
+		}
+
+		$changed = false;
+
+		foreach ( array( ErrorMessages::FIELD_BILLING, ErrorMessages::FIELD_SHIPPING ) as $field ) {
+			$phone = (string) $order->{"get_{$field}_phone"}();
+
+			// Both phones are validated only when filled in - required-ness is WooCommerce's job.
+			if ( '' === $phone || ! Hooks::should_validate( $field, $order ) ) {
+				continue;
+			}
+
+			$country = (string) $order->{"get_{$field}_country"}();
+			$result  = PhoneValidator::validate( $phone, '' !== $country ? $country : null );
+
+			if ( ! $result->is_valid() ) {
+				throw new RouteException(
+					esc_html( "invalid_{$field}_phone" ),
+					esc_html( self::translated_message( $result->get_error_code(), $field ) ),
+					400,
+					array(
+						'field' => esc_html( "{$field}_phone" ),
+						'code'  => esc_html( (string) $result->get_error_code() ),
+					)
+				);
+			}
+
+			if ( ! Settings::is_format_on_save_enabled() ) {
+				continue;
+			}
+
+			$formatted = Hooks::format_for_order( $result->get_phone_number(), $field, $order );
+
+			if ( $formatted !== $phone ) {
+				$order->{"set_{$field}_phone"}( $formatted );
+				$changed = true;
+			}
+		}
+
+		return $changed;
+	}
+
+	/**
+	 * Build the error message in the customer's language.
+	 *
+	 * Store API requests are REST requests: multilingual plugins often do not set the
+	 * language there, so the locale is resolved explicitly and restored afterwards.
+	 *
+	 * @param string|null $error_code One of the ValidationResult::ERROR_* constants.
+	 * @param string      $field      ErrorMessages::FIELD_BILLING or ErrorMessages::FIELD_SHIPPING.
+	 * @return string The translated message.
+	 */
+	private static function translated_message( ?string $error_code, string $field ): string {
+		$locale   = self::get_current_locale();
+		$switched = get_locale() !== $locale && switch_to_locale( $locale );
+
+		self::reload_textdomain();
+		$message = ErrorMessages::for_block_checkout( $error_code, $field );
+
+		if ( $switched ) {
+			restore_previous_locale();
+			self::reload_textdomain();
+		}
+
+		return $message;
+	}
+
+	/**
+	 * Reload plugin translations for the locale that is active right now.
 	 *
 	 * @return void
 	 */
-	private static function load_textdomain(): void {
-		// Get the locale - try multiple methods for multilingual compatibility.
-		$locale = self::get_current_locale();
-
-		// Switch to the correct locale if needed.
-		if ( function_exists( 'switch_to_locale' ) && $locale && get_locale() !== $locale ) {
-			switch_to_locale( $locale );
-		}
-
-		// Unload and reload translations to ensure correct locale is used.
+	private static function reload_textdomain(): void {
 		unload_textdomain( 'verify-phone-number-shift64' );
 
-		// Load translations.
 		load_plugin_textdomain(
 			'verify-phone-number-shift64',
 			false,
@@ -140,37 +200,17 @@ class BlockCheckoutValidator {
 	/**
 	 * Get current locale with multilingual plugin support.
 	 *
+	 * Order: what the multilingual plugin says, then the language directory of the
+	 * page the request came from, then WordPress itself.
+	 *
 	 * @return string The current locale.
 	 */
 	private static function get_current_locale(): string {
-		// Language code to locale mapping.
-		$locale_map = array(
-			'pl' => 'pl_PL',
-			'en' => 'en_US',
-			'de' => 'de_DE',
-			'fr' => 'fr_FR',
-			'es' => 'es_ES',
-			'it' => 'it_IT',
-			'nl' => 'nl_NL',
-			'pt' => 'pt_PT',
-			'ru' => 'ru_RU',
-		);
-
-		// Try to detect language from HTTP_REFERER (most reliable for REST API).
-		// phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$referer = isset( $_SERVER['HTTP_REFERER'] ) ? $_SERVER['HTTP_REFERER'] : '';
-		if ( $referer && preg_match( '#/([a-z]{2})(/|$|\?)#', $referer, $matches ) ) {
-			$lang_code = $matches[1];
-			if ( isset( $locale_map[ $lang_code ] ) ) {
-				return $locale_map[ $lang_code ];
-			}
-		}
-
 		// Try Polylang.
 		if ( function_exists( 'pll_current_language' ) ) {
 			$pll_locale = pll_current_language( 'locale' );
 			if ( $pll_locale ) {
-				return $pll_locale;
+				return (string) $pll_locale;
 			}
 		}
 
@@ -178,12 +218,50 @@ class BlockCheckoutValidator {
 		if ( defined( 'ICL_LANGUAGE_CODE' ) ) {
 			// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- WPML hook.
 			$wpml_lang = apply_filters( 'wpml_current_language', null );
-			if ( $wpml_lang && isset( $locale_map[ $wpml_lang ] ) ) {
-				return $locale_map[ $wpml_lang ];
+			if ( $wpml_lang && isset( self::LOCALE_MAP[ $wpml_lang ] ) ) {
+				return self::LOCALE_MAP[ $wpml_lang ];
 			}
 		}
 
-		// Fallback to determine_locale().
+		// Multilingual plugins may not know the language in REST requests - look at the checkout page URL.
+		$referer = isset( $_SERVER['HTTP_REFERER'] ) ? esc_url_raw( wp_unslash( $_SERVER['HTTP_REFERER'] ) ) : '';
+		$locale  = self::locale_from_referer( $referer, (string) home_url( '/' ), get_available_languages() );
+		if ( null !== $locale ) {
+			return $locale;
+		}
+
 		return determine_locale();
+	}
+
+	/**
+	 * Read the language directory (/pl/, /de/...) from the referring page URL.
+	 *
+	 * Only the first path segment after the site's home path counts, and only when that
+	 * language is installed - so "/shop/it/" or a product slug never flips the language.
+	 *
+	 * @param string   $referer   Referring URL.
+	 * @param string   $home_url  Site home URL.
+	 * @param string[] $installed Installed locales, e.g. array( 'pl_PL', 'de_DE' ).
+	 * @return string|null Locale or null when the URL carries no usable language.
+	 */
+	public static function locale_from_referer( string $referer, string $home_url, array $installed ): ?string {
+		$path      = (string) wp_parse_url( $referer, PHP_URL_PATH );
+		$home_path = rtrim( (string) wp_parse_url( $home_url, PHP_URL_PATH ), '/' );
+
+		if ( '' !== $home_path && 0 === strpos( $path, $home_path ) ) {
+			$path = substr( $path, strlen( $home_path ) );
+		}
+
+		$segments = explode( '/', ltrim( $path, '/' ) );
+		$code     = strtolower( $segments[0] );
+
+		if ( ! isset( self::LOCALE_MAP[ $code ] ) ) {
+			return null;
+		}
+
+		$locale = self::LOCALE_MAP[ $code ];
+
+		// en_US ships with WordPress and is never listed as installed.
+		return 'en_US' === $locale || in_array( $locale, $installed, true ) ? $locale : null;
 	}
 }
