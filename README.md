@@ -74,7 +74,7 @@ src/Admin/GitHubUpdater.php       update check against GitHub releases (cached 1
 src/Admin/DependencyChecker.php   "WooCommerce missing" notice
 src/Validation/                   Normalizer, PhoneValidator, ValidationResult
 src/Formatter/PhoneFormatter.php  E.164 / international / national output
-src/Checkout/                     classic + block checkout integration, asset loading
+src/Checkout/                     classic + block checkout integration, error messages, asset loading
 assets/js/                        field highlighting for both checkout types
 languages/                        .pot, en_US, pl_PL
 ```
@@ -92,7 +92,13 @@ composer makepot      # regenerate languages/*.pot
 
 ### Tests
 
-There is currently **no automated test coverage**. `tests/` contains only the WP-CLI scaffold sample test, and `phpunit.xml.dist` excludes it; PHPUnit is not part of `require-dev`. The only automated check in CI is PHPCS (`.github/workflows/code-quality.yml`). The `.circleci/config.yml` file is an unused scaffold leftover.
+```bash
+composer test         # PHPUnit unit suite (tests/Unit), no WordPress required
+```
+
+The unit suite covers the pure logic: `Normalizer`, `PhoneValidator` (including error codes), `PhoneFormatter`, `ValidationResult` and the checkout error-message mapping in English and Polish. WordPress is not loaded; `get_option()` and `__()` are replaced by small stubs in `tests/Unit/bootstrap.php`.
+
+There are **no integration tests yet** – the WooCommerce hooks (classic checkout, Store API) are not exercised automatically. CI (`.github/workflows/code-quality.yml`) runs PHPCS and the unit suite on every PR. `tests/bootstrap.php` and `bin/install-wp-tests.sh` are kept for a future WordPress integration suite.
 
 ### Releases
 

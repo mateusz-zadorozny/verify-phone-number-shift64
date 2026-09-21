@@ -62,7 +62,7 @@ class ShippingPhoneValidator {
 		$result = PhoneValidator::validate( $shipping_phone, $country_code );
 
 		if ( ! $result->is_valid() ) {
-			$error_message = self::get_user_friendly_error( $result->get_error_message() );
+			$error_message = ErrorMessages::for_classic_checkout( $result->get_error_code(), ErrorMessages::FIELD_SHIPPING );
 			$errors->add( 'shipping_phone_validation', $error_message, array( 'id' => 'shipping_phone' ) );
 		}
 	}
@@ -98,23 +98,5 @@ class ShippingPhoneValidator {
 			$formatted = PhoneFormatter::format( $result->get_phone_number() );
 			$order->set_shipping_phone( $formatted );
 		}
-	}
-
-	/**
-	 * Get user-friendly error message for checkout display.
-	 *
-	 * Maps internal validation errors to user-facing messages as specified in acceptance criteria.
-	 *
-	 * @param string|null $internal_message The internal validation error message.
-	 * @return string The user-friendly error message.
-	 */
-	private static function get_user_friendly_error( ?string $internal_message ): string {
-		// Check if the error is about missing international prefix.
-		if ( null !== $internal_message && false !== strpos( $internal_message, 'international prefix' ) ) {
-			return __( 'Shipping phone number must contain country prefix.', 'verify-phone-number-shift64' );
-		}
-
-		// Default error message for invalid numbers.
-		return __( 'Please enter a valid shipping phone number.', 'verify-phone-number-shift64' );
 	}
 }
