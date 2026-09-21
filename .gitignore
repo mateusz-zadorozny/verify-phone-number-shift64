@@ -13,4 +13,5 @@ dist/
 tasks/
 CLAUDE.md
 .claude/
-.vscode/.phpunit.result.cache
+.vscode/
+.phpunit.result.cache
