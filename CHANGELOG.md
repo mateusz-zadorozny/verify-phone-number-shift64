@@ -1,3 +1,10 @@
+# [1.3.0](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.2.2...v1.3.0) (2026-09-21)
+
+
+### Features
+
+* declare HPOS and cart/checkout blocks compatibility ([#18](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/18)) ([e798788](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/e798788a952ba94e7bd11dd69b20f8d08f367ee0))
+
 ## [1.2.2](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.2.1...v1.2.2) (2026-09-21)
 
 
