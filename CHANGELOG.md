@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.3.0...v1.3.1) (2026-09-21)
+
+
+### Bug Fixes
+
+* **checkout:** validate block checkout earlier and only on place order ([#19](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/19)) ([25558a8](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/25558a876fddeac8451316e8607fc46a6b27acc8))
+
 # [1.3.0](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.2.2...v1.3.0) (2026-09-21)
 
 
