@@ -81,13 +81,41 @@ languages/                        .pot, en_US, pl_PL
 
 ## Developers
 
-Validation is server-side; the JavaScript only highlights the field. A theme that already handles checkout errors can turn the scripts off and keep the validation:
+Validation logic lives in the plugin, presentation can live in the theme. All extension points are WordPress filters, so a theme that uses them keeps working when the plugin is deactivated (an unused `add_filter()` is a no-op).
+
+| Filter | Arguments | Purpose |
+| --- | --- | --- |
+| `shift64_phone_validation_enqueue_assets` | `bool $enqueue` | Return `false` to skip the highlighting scripts when the theme has its own checkout error UX. Validation is server-side and keeps working. |
+| `shift64_phone_validation_error_message` | `string $message, ?string $code, string $field, string $context` | Reword the customer-facing message. `$code`: `missing_international_prefix`, `invalid_number`, `too_short`, `too_long`, `not_a_number`, `invalid_country_code`, `parse_error`. `$field`: `billing` / `shipping`. `$context`: `classic` / `block`. |
+| `shift64_phone_validation_should_validate` | `bool $validate, string $field, array\|WC_Order $context` | Return `false` to skip validation **and** formatting for a field in this request (e.g. staff orders). `$context` is the posted data on classic checkout, the order otherwise. |
+| `shift64_phone_validation_formatted_phone` | `string $formatted, PhoneNumber $number, string $field, WC_Order $order` | Change the value stored on the order. |
 
 ```php
+// Theme owns the error UX and the wording.
 add_filter( 'shift64_phone_validation_enqueue_assets', '__return_false' );
+add_filter(
+	'shift64_phone_validation_error_message',
+	function ( $message, $code ) {
+		return 'missing_international_prefix' === $code
+			? 'Podaj numer telefonu z prefiksem kraju, np. +48.'
+			: 'Podaj poprawny numer telefonu.';
+	},
+	10,
+	2
+);
 ```
 
-Classic checkout errors are added with the field id (`data-id="billing_phone"` / `shipping_phone` on the notice `<li>`), and every message contains the word "phone" (pl_PL: "telefon"), so both id-based and keyword-based theme mappers can attach them to the field.
+An integration that needs a different format than the stored one can use the helper (guard it – it only exists while the plugin is active):
+
+```php
+if ( function_exists( 'Shift64\\SmartPhoneValidation\\format_phone' ) ) {
+	$national = \Shift64\SmartPhoneValidation\format_phone( $order->get_billing_phone(), 'PL', 'NATIONAL' ); // null when invalid.
+}
+```
+
+Classic checkout errors are added with the field id (`data-id="billing_phone"` / `shipping_phone` on the notice `<li>`), and every default message contains the word "phone" (pl_PL: "telefon"), so both id-based and keyword-based theme mappers can attach them to the field.
+
+**Before enabling "Formatting on Save"** check every consumer of the order phone (ERP / order export, courier labels, SMS gateway): the stored value changes shape, e.g. `600 100 200` → `+48600100200`.
 
 ## Development
 

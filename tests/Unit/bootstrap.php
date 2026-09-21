@@ -4,6 +4,7 @@
  *
  * Only the two WordPress functions the validation layer touches are stubbed:
  * - get_option(): backed by $GLOBALS['shift64_test_options'] (set per test),
+ * - apply_filters(): backed by $GLOBALS['shift64_test_filters'] (hook => callable),
  * - __(): backed by $GLOBALS['shift64_test_translations'] (empty = English passthrough).
  *
  * @package Shift64\SmartPhoneValidation\Tests
@@ -13,6 +14,16 @@ require_once dirname( __DIR__, 2 ) . '/vendor/autoload.php';
 
 $GLOBALS['shift64_test_options']      = array();
 $GLOBALS['shift64_test_translations'] = array();
+$GLOBALS['shift64_test_filters']      = array();
+
+if ( ! function_exists( 'apply_filters' ) ) {
+	function apply_filters( $hook, $value, ...$args ) {
+		if ( isset( $GLOBALS['shift64_test_filters'][ $hook ] ) ) {
+			return $GLOBALS['shift64_test_filters'][ $hook ]( $value, ...$args );
+		}
+		return $value;
+	}
+}
 
 if ( ! function_exists( 'get_option' ) ) {
 	function get_option( $name, $default = false ) {

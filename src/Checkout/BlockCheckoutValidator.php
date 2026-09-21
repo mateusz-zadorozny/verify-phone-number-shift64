@@ -11,7 +11,6 @@ namespace Shift64\SmartPhoneValidation\Checkout;
 
 use Automattic\WooCommerce\StoreApi\Exceptions\RouteException;
 use Shift64\SmartPhoneValidation\Admin\Settings;
-use Shift64\SmartPhoneValidation\Formatter\PhoneFormatter;
 use Shift64\SmartPhoneValidation\Validation\PhoneValidator;
 use WC_Order;
 
@@ -53,7 +52,7 @@ class BlockCheckoutValidator {
 
 		// Validate billing phone.
 		$billing_phone = $order->get_billing_phone();
-		if ( ! empty( $billing_phone ) ) {
+		if ( ! empty( $billing_phone ) && Hooks::should_validate( ErrorMessages::FIELD_BILLING, $order ) ) {
 			$billing_country = $order->get_billing_country();
 			$country_code    = ! empty( $billing_country ) ? $billing_country : null;
 
@@ -74,14 +73,14 @@ class BlockCheckoutValidator {
 
 			// Format billing phone if enabled.
 			if ( Settings::is_format_on_save_enabled() ) {
-				$formatted = PhoneFormatter::format( $result->get_phone_number() );
+				$formatted = Hooks::format_for_order( $result->get_phone_number(), ErrorMessages::FIELD_BILLING, $order );
 				$order->set_billing_phone( $formatted );
 			}
 		}
 
 		// Validate shipping phone (only if filled - it's optional).
 		$shipping_phone = $order->get_shipping_phone();
-		if ( ! empty( $shipping_phone ) ) {
+		if ( ! empty( $shipping_phone ) && Hooks::should_validate( ErrorMessages::FIELD_SHIPPING, $order ) ) {
 			$shipping_country = $order->get_shipping_country();
 			$country_code     = ! empty( $shipping_country ) ? $shipping_country : null;
 
@@ -102,7 +101,7 @@ class BlockCheckoutValidator {
 
 			// Format shipping phone if enabled.
 			if ( Settings::is_format_on_save_enabled() ) {
-				$formatted = PhoneFormatter::format( $result->get_phone_number() );
+				$formatted = Hooks::format_for_order( $result->get_phone_number(), ErrorMessages::FIELD_SHIPPING, $order );
 				$order->set_shipping_phone( $formatted );
 			}
 		}

@@ -19,7 +19,10 @@
     "autoload": {
         "psr-4": {
             "Shift64\\SmartPhoneValidation\\": "src/"
-        }
+        },
+        "files": [
+            "src/functions.php"
+        ]
     },
     "scripts": {
         "phpcs": "phpcs",
