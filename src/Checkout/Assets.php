@@ -36,6 +36,18 @@ class Assets {
 			return;
 		}
 
+		/**
+		 * Filters whether the plugin loads its field-highlighting scripts.
+		 *
+		 * The scripts are presentation only. Return false when the theme has its own
+		 * checkout error UX - server-side validation keeps working without them.
+		 *
+		 * @param bool $enqueue Whether to enqueue the scripts. Default true.
+		 */
+		if ( ! apply_filters( 'shift64_phone_validation_enqueue_assets', true ) ) {
+			return;
+		}
+
 		// Classic checkout script (requires jQuery and wc-checkout).
 		if ( ! self::is_block_checkout() ) {
 			wp_enqueue_script(
@@ -55,6 +67,13 @@ class Assets {
 				array(),
 				SHIFT64_PHONE_VALIDATION_VERSION,
 				true
+			);
+
+			// The script recognises our notices by the exact server-side wording.
+			wp_add_inline_script(
+				'shift64-phone-block-checkout-validation',
+				'window.shift64PhoneValidation = ' . wp_json_encode( array( 'messages' => ErrorMessages::all_for_block_checkout() ) ) . ';',
+				'before'
 			);
 		}
 	}

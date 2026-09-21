@@ -50,8 +50,29 @@ class ErrorMessages {
 		}
 
 		return $is_missing_prefix
-			? __( 'Number must contain country prefix.', 'verify-phone-number-shift64' )
+			? __( 'Phone number must contain country prefix.', 'verify-phone-number-shift64' )
 			: __( 'Please enter a valid phone number.', 'verify-phone-number-shift64' );
+	}
+
+	/**
+	 * All block checkout messages grouped by field, in the current locale.
+	 *
+	 * Handed to the block checkout script so it can recognise our notices without
+	 * hardcoding any language: PHP stays the single source of the wording.
+	 *
+	 * @return array<string, string[]> Messages keyed by FIELD_BILLING / FIELD_SHIPPING.
+	 */
+	public static function all_for_block_checkout(): array {
+		$messages = array();
+
+		foreach ( array( self::FIELD_BILLING, self::FIELD_SHIPPING ) as $field ) {
+			$messages[ $field ] = array(
+				self::for_block_checkout( ValidationResult::ERROR_MISSING_INTERNATIONAL_PREFIX, $field ),
+				self::for_block_checkout( ValidationResult::ERROR_INVALID_NUMBER, $field ),
+			);
+		}
+
+		return $messages;
 	}
 
 	/**

@@ -12,7 +12,7 @@ The plugin checks billing and shipping phone numbers when an order is placed, re
 - Input normalization: spaces, dashes, dots and parentheses are stripped, a leading `00` is treated as `+`
 - Two validation modes: *default country + international* or *international only* (number must start with `+`)
 - Output formats: E.164 (`+48600123456`), international (`+48 600 123 456`), national (`600 123 456`)
-- Highlights the offending phone field on checkout (small JS helpers, no build step)
+- Highlights the offending phone field on checkout (small JS helpers, no build step; can be switched off for themes with their own error UX)
 - Translations: English and Polish; error messages in block checkout follow Polylang / WPML language
 - Self-updates from GitHub releases (one-click update in WP Admin)
 
@@ -78,6 +78,16 @@ src/Checkout/                     classic + block checkout integration, error me
 assets/js/                        field highlighting for both checkout types
 languages/                        .pot, en_US, pl_PL
 ```
+
+## Developers
+
+Validation is server-side; the JavaScript only highlights the field. A theme that already handles checkout errors can turn the scripts off and keep the validation:
+
+```php
+add_filter( 'shift64_phone_validation_enqueue_assets', '__return_false' );
+```
+
+Classic checkout errors are added with the field id (`data-id="billing_phone"` / `shipping_phone` on the notice `<li>`), and every message contains the word "phone" (pl_PL: "telefon"), so both id-based and keyword-based theme mappers can attach them to the field.
 
 ## Development
 

@@ -880,8 +880,8 @@ msgstr "Zimbabwe"
 
 #. Checkout validation messages
 #: src/Checkout/BillingPhoneValidator.php:114
-msgid "Number must contain country prefix."
-msgstr "Number must contain country prefix."
+msgid "Phone number must contain country prefix."
+msgstr "Phone number must contain country prefix."
 
 #: src/Checkout/BillingPhoneValidator.php:118
 msgid "Please enter a valid phone number."
