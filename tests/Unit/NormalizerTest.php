@@ -1,0 +1,30 @@
+<?php
+
+namespace Shift64\SmartPhoneValidation\Tests\Unit;
+
+use Shift64\SmartPhoneValidation\Validation\Normalizer;
+
+class NormalizerTest extends TestCase {
+
+	/**
+	 * @dataProvider inputs
+	 */
+	public function test_normalize( string $input, string $expected ): void {
+		$this->assertSame( $expected, Normalizer::normalize( $input ) );
+	}
+
+	public function inputs(): array {
+		return array(
+			'already clean'         => array( '+48600100200', '+48600100200' ),
+			'spaces'                => array( '600 100 200', '600100200' ),
+			'dashes'                => array( '600-100-200', '600100200' ),
+			'dots'                  => array( '600.100.200', '600100200' ),
+			'parentheses'           => array( '(22) 410 05 00', '224100500' ),
+			'prefix in parentheses' => array( '(+48) 600 100 200', '+48600100200' ),
+			'surrounding whitespace' => array( "  600100200\n", '600100200' ),
+			'00 becomes plus'       => array( '0048 600 100 200', '+48600100200' ),
+			'empty'                 => array( '', '' ),
+			'only separators'       => array( ' - ( ) . ', '' ),
+		);
+	}
+}
