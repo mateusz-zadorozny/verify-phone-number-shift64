@@ -1,3 +1,10 @@
+## [1.3.3](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.3.2...v1.3.3) (2026-09-21)
+
+
+### Bug Fixes
+
+* harden normalizer and changelog rendering, add uninstall cleanup ([#21](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/21)) ([6988e39](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/6988e39f59178ee15dd52fa5a6d422b54f1ab7b1))
+
 ## [1.3.2](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.3.1...v1.3.2) (2026-09-21)
 
 
