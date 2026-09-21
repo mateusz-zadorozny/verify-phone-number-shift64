@@ -39,6 +39,7 @@ class PhoneValidator {
 		// Check if empty after normalization.
 		if ( '' === $normalized ) {
 			return ValidationResult::failure(
+				ValidationResult::ERROR_EMPTY,
 				__( 'Phone number cannot be empty.', 'verify-phone-number-shift64' )
 			);
 		}
@@ -52,6 +53,7 @@ class PhoneValidator {
 		// In 'International only' mode, reject numbers without '+' prefix.
 		if ( self::MODE_INTERNATIONAL_ONLY === $validation_mode && ! $is_international ) {
 			return ValidationResult::failure(
+				ValidationResult::ERROR_MISSING_INTERNATIONAL_PREFIX,
 				__( 'Phone number must include international prefix (+).', 'verify-phone-number-shift64' )
 			);
 		}
@@ -70,6 +72,7 @@ class PhoneValidator {
 
 			if ( ! $util->isValidNumber( $parsed_number ) ) {
 				return ValidationResult::failure(
+					ValidationResult::ERROR_INVALID_NUMBER,
 					__( 'The phone number is not valid.', 'verify-phone-number-shift64' )
 				);
 			}
@@ -101,25 +104,31 @@ class PhoneValidator {
 
 		switch ( $error_type ) {
 			case NumberParseException::INVALID_COUNTRY_CODE:
+				$code    = ValidationResult::ERROR_INVALID_COUNTRY_CODE;
 				$message = __( 'Invalid country code.', 'verify-phone-number-shift64' );
 				break;
 			case NumberParseException::NOT_A_NUMBER:
+				$code    = ValidationResult::ERROR_NOT_A_NUMBER;
 				$message = __( 'The input does not appear to be a phone number.', 'verify-phone-number-shift64' );
 				break;
 			case NumberParseException::TOO_SHORT_AFTER_IDD:
+				$code    = ValidationResult::ERROR_TOO_SHORT;
 				$message = __( 'Phone number is too short after country code.', 'verify-phone-number-shift64' );
 				break;
 			case NumberParseException::TOO_SHORT_NSN:
+				$code    = ValidationResult::ERROR_TOO_SHORT;
 				$message = __( 'Phone number is too short.', 'verify-phone-number-shift64' );
 				break;
 			case NumberParseException::TOO_LONG:
+				$code    = ValidationResult::ERROR_TOO_LONG;
 				$message = __( 'Phone number is too long.', 'verify-phone-number-shift64' );
 				break;
 			default:
+				$code    = ValidationResult::ERROR_PARSE_ERROR;
 				$message = __( 'Unable to parse phone number.', 'verify-phone-number-shift64' );
 				break;
 		}
 
-		return ValidationResult::failure( $message );
+		return ValidationResult::failure( $code, $message );
 	}
 }

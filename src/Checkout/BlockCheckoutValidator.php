@@ -60,13 +60,14 @@ class BlockCheckoutValidator {
 			$result = PhoneValidator::validate( $billing_phone, $country_code );
 
 			if ( ! $result->is_valid() ) {
-				$error_message = self::get_user_friendly_error( $result->get_error_message(), 'billing' );
+				$error_message = ErrorMessages::for_block_checkout( $result->get_error_code(), ErrorMessages::FIELD_BILLING );
 				throw new RouteException(
 					'invalid_billing_phone',
 					esc_html( $error_message ),
 					400,
 					array(
 						'field' => 'billing_phone',
+						'code'  => esc_html( (string) $result->get_error_code() ),
 					)
 				);
 			}
@@ -87,13 +88,14 @@ class BlockCheckoutValidator {
 			$result = PhoneValidator::validate( $shipping_phone, $country_code );
 
 			if ( ! $result->is_valid() ) {
-				$error_message = self::get_user_friendly_error( $result->get_error_message(), 'shipping' );
+				$error_message = ErrorMessages::for_block_checkout( $result->get_error_code(), ErrorMessages::FIELD_SHIPPING );
 				throw new RouteException(
 					'invalid_shipping_phone',
 					esc_html( $error_message ),
 					400,
 					array(
 						'field' => 'shipping_phone',
+						'code'  => esc_html( (string) $result->get_error_code() ),
 					)
 				);
 			}
@@ -184,27 +186,5 @@ class BlockCheckoutValidator {
 
 		// Fallback to determine_locale().
 		return determine_locale();
-	}
-
-	/**
-	 * Get user-friendly error message for Store API response.
-	 *
-	 * @param string|null $internal_message The internal validation error message.
-	 * @param string      $field_type       The field type ('billing' or 'shipping').
-	 * @return string The user-friendly error message.
-	 */
-	private static function get_user_friendly_error( ?string $internal_message, string $field_type ): string {
-		$field_label = 'billing' === $field_type
-			? __( 'Billing phone', 'verify-phone-number-shift64' )
-			: __( 'Shipping phone', 'verify-phone-number-shift64' );
-
-		// Check if the error is about missing international prefix.
-		if ( null !== $internal_message && false !== strpos( $internal_message, 'international prefix' ) ) {
-			/* translators: %s: field label (Billing phone or Shipping phone) */
-			return sprintf( __( '%s must contain country prefix.', 'verify-phone-number-shift64' ), $field_label );
-		}
-
-		/* translators: %s: field label (Billing phone or Shipping phone) */
-		return sprintf( __( '%s is not a valid phone number.', 'verify-phone-number-shift64' ), $field_label );
 	}
 }
