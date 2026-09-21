@@ -1,3 +1,10 @@
+## [1.1.3](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.1.2...v1.1.3) (2026-09-21)
+
+
+### Bug Fixes
+
+* **checkout:** map validation errors by code instead of translated text ([#12](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/12)) ([041a207](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/041a207a26cc0405aebd451072b3c0cad9d45f68))
+
 ## [1.1.2](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.1.1...v1.1.2) (2026-01-28)
 
 
