@@ -18,7 +18,7 @@ abstract class TestCase extends PHPUnitTestCase {
 	const POLISH = array(
 		'Phone number must include international prefix (+).' => 'Numer telefonu musi zawierać międzynarodowy prefiks (+).',
 		'The phone number is not valid.'                      => 'Numer telefonu jest nieprawidłowy.',
-		'Number must contain country prefix.'                 => 'Numer musi zawierać prefiks kraju.',
+		'Phone number must contain country prefix.'           => 'Numer telefonu musi zawierać prefiks kraju.',
 		'Please enter a valid phone number.'                  => 'Proszę podać prawidłowy numer telefonu.',
 		'Shipping phone number must contain country prefix.'  => 'Numer telefonu do wysyłki musi zawierać prefiks kraju.',
 		'Please enter a valid shipping phone number.'         => 'Proszę podać prawidłowy numer telefonu do wysyłki.',
