@@ -1,3 +1,10 @@
+## [1.2.2](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.2.1...v1.2.2) (2026-09-21)
+
+
+### Bug Fixes
+
+* **updater:** offer updates regardless of the plugin directory name ([#17](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/17)) ([ecfae70](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/ecfae702080b457c81ec8904ba1ed22729daea5d))
+
 ## [1.2.1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.2.0...v1.2.1) (2026-09-21)
 
 
