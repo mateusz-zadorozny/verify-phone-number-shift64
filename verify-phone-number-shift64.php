@@ -10,6 +10,9 @@
  * Version:         1.2.2
  * Requires PHP:    7.4
  * Requires at least: 5.0
+ * Requires Plugins: woocommerce
+ * WC requires at least: 7.2
+ * WC tested up to: 10.9
  *
  * @package Shift64\SmartPhoneValidation
  */
@@ -28,6 +31,18 @@ define( 'SHIFT64_PHONE_VALIDATION_VERSION', '1.2.2' );
 define( 'SHIFT64_PHONE_VALIDATION_FILE', __FILE__ );
 define( 'SHIFT64_PHONE_VALIDATION_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SHIFT64_PHONE_VALIDATION_URL', plugin_dir_url( __FILE__ ) );
+
+// Declare compatibility with WooCommerce features. Orders are only accessed through
+// WC_Order CRUD methods, so both order storages work.
+add_action(
+	'before_woocommerce_init',
+	function () {
+		if ( class_exists( '\Automattic\WooCommerce\Utilities\FeaturesUtil' ) ) {
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'custom_order_tables', __FILE__, true );
+			\Automattic\WooCommerce\Utilities\FeaturesUtil::declare_compatibility( 'cart_checkout_blocks', __FILE__, true );
+		}
+	}
+);
 
 // Load Composer autoloader.
 $shift64_autoloader = SHIFT64_PHONE_VALIDATION_PATH . 'vendor/autoload.php';
