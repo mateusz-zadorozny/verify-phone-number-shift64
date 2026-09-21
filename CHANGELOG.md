@@ -1,3 +1,10 @@
+# [1.4.0](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.3.3...v1.4.0) (2026-09-21)
+
+
+### Features
+
+* require PHP 8.3 and upgrade libphonenumber to v9 ([#22](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/22)) ([81c3461](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/81c3461581369e858c1e390397f29fda1447054e))
+
 ## [1.3.3](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.3.2...v1.3.3) (2026-09-21)
 
 
