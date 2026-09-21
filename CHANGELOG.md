@@ -1,3 +1,10 @@
+## [1.1.4](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.1.3...v1.1.4) (2026-09-21)
+
+
+### Bug Fixes
+
+* **checkout:** highlight phone fields by field id instead of message text ([#14](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/14)) ([ee15179](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/ee15179917b0ae51cc92aa111ff989db4d196b4d))
+
 ## [1.1.3](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.1.2...v1.1.3) (2026-09-21)
 
 
