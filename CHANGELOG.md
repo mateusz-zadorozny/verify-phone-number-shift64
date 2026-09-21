@@ -1,3 +1,10 @@
+# [1.2.0](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.1.4...v1.2.0) (2026-09-21)
+
+
+### Features
+
+* add filters and format_phone() helper for themes and integrations ([#15](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/15)) ([2b60ed6](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/2b60ed6595dc43869e13774c0e65e4378fdc94c5))
+
 ## [1.1.4](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.1.3...v1.1.4) (2026-09-21)
 
 
