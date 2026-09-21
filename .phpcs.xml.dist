@@ -47,7 +47,7 @@
 
 	<!-- PHP Compatibility -->
 	<rule ref="PHPCompatibilityWP"/>
-	<config name="testVersion" value="7.4-"/>
+	<config name="testVersion" value="8.3-"/>
 
 	<!-- Allow PSR-4 file naming for src/ directory -->
 	<rule ref="WordPress.Files.FileName">
