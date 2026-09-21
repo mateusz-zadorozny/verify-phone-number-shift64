@@ -19,7 +19,7 @@ The plugin checks billing and shipping phone numbers when an order is placed, re
 ## Requirements
 
 - WordPress 5.0+
-- WooCommerce (block checkout support requires WooCommerce 5.3+)
+- WooCommerce 7.2+ (declared compatible with High-Performance Order Storage and Cart & Checkout blocks)
 - PHP 7.4+
 
 ## Installation
