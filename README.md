@@ -30,7 +30,7 @@ The plugin checks billing and shipping phone numbers when an order is placed, re
 2. In WP Admin go to *Plugins → Add New → Upload Plugin* and upload the file.
 3. Activate the plugin.
 
-Why it matters: the release ZIP contains the `vendor/` directory with libphonenumber. A source download (folder named `verify-phone-number-shift64-master`) does not – the plugin will only show a "Composer autoloader not found" notice and do nothing. The auto-updater also expects the plugin to live in a folder called exactly `verify-phone-number-shift64`.
+Why it matters: the release ZIP contains the `vendor/` directory with libphonenumber. A source download (folder named `verify-phone-number-shift64-master`) does not – the plugin will only show a "Composer autoloader not found" notice and do nothing. The auto-updater works from any folder name, but it still needs `vendor/`.
 
 If you do install from source, run inside the plugin directory:
 
