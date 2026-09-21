@@ -62,8 +62,8 @@ msgid "Default Country"
 msgstr "Domyślny Kraj"
 
 #: src/Admin/Settings.php:94
-msgid "Select the default country code for phone validation."
-msgstr "Wybierz domyślny kod kraju dla walidacji telefonu."
+msgid "Used for numbers entered without \"+\" only when the address has no country. Otherwise the number is read in the country of the billing / shipping address."
+msgstr "Używany dla numerów wpisanych bez „+” tylko wtedy, gdy adres nie ma kraju. W pozostałych przypadkach numer jest odczytywany w kraju z adresu rozliczeniowego / wysyłki."
 
 #: src/Admin/Settings.php:103
 msgid "Validation Mode"
