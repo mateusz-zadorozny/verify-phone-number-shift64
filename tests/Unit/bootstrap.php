@@ -37,4 +37,19 @@ if ( ! function_exists( '__' ) ) {
 	}
 }
 
+if ( ! class_exists( 'WP_Error' ) ) {
+	/**
+	 * Minimal stand-in: records what the checkout validators add.
+	 */
+	class WP_Error {
+		public $errors     = array();
+		public $error_data = array();
+
+		public function add( $code, $message, $data = '' ) {
+			$this->errors[ $code ][]   = $message;
+			$this->error_data[ $code ] = $data;
+		}
+	}
+}
+
 require_once __DIR__ . '/TestCase.php';
