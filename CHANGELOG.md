@@ -1,3 +1,10 @@
+## [1.4.1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.4.0...v1.4.1) (2026-09-22)
+
+
+### Bug Fixes
+
+* correct plugin author and replace the dead plugin URI, add sponsor credits ([#27](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/27)) ([5eeeed0](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/5eeeed08a27e73d24763ebf833c1e41fb4f3fe76))
+
 # [1.4.0](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.3.3...v1.4.0) (2026-09-21)
 
 
