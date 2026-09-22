@@ -1,7 +1,7 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Verify Phone Number Shift64 0.1.0\n"
-"Report-Msgid-Bugs-To: https://shift64.com/plugins/verify-phone-number\n"
+"Report-Msgid-Bugs-To: https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues\n"
 "Last-Translator: Shift64 <info@shift64.com>\n"
 "Language-Team: English (US) <en@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -928,12 +928,12 @@ msgstr "%s is not a valid phone number."
 
 #. Plugin URI of the plugin
 #: verify-phone-number-shift64.php
-msgid "https://shift64.com/plugins/verify-phone-number"
+msgid "https://shift64.com/services/custom-woocommerce-coding"
 msgstr ""
 
 #. Author of the plugin
 #: verify-phone-number-shift64.php
-msgid "Shift64"
+msgid "Mateusz Zadorożny (SHIFT64)"
 msgstr ""
 
 #. Author URI of the plugin
