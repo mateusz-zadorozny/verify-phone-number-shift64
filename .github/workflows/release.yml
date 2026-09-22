@@ -69,6 +69,8 @@ jobs:
             --exclude='.github' \
             --exclude='.circleci' \
             --exclude='.claude' \
+            --exclude='.ai' \
+            --exclude='skills-lock.json' \
             --exclude='.ralph-tui' \
             --exclude='node_modules' \
             --exclude='dist' \
