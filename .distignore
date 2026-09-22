@@ -8,6 +8,9 @@
 .git
 .gitignore
 .github
+.ai
+.claude
+skills-lock.json
 .gitlab-ci.yml
 .travis.yml
 .DS_Store

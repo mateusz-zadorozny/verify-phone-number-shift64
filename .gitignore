@@ -12,6 +12,7 @@ dist/
 .ralph-tui/
 tasks/
 CLAUDE.md
-.claude/
+.claude/*
+!.claude/skills/
 .vscode/
 .phpunit.result.cache
