@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { existsSync, readFileSync } from 'node:fs';
 
 // The e2e suite runs against the wp-env instance from .wp-env.json by default
 // (port 8888, overridable with WP_ENV_PORT, the variable wp-env itself honors).
@@ -7,13 +8,28 @@ const baseURL =
 	process.env.WP_BASE_URL ??
 	`http://localhost:${ process.env.WP_ENV_PORT ?? '8888' }`;
 
+// Admin credentials for the settings tests: the test-env entrypoint writes
+// them to this gitignored file; CI exports TEST_ADMIN_PASSWORD directly.
+const credentialsFile = '.ai/qa/test-env.env';
+if ( existsSync( credentialsFile ) ) {
+	for ( const line of readFileSync( credentialsFile, 'utf8' ).split( '\n' ) ) {
+		const match = /^([A-Z0-9_]+)=(.*)$/.exec( line.trim() );
+		if ( match && process.env[ match[ 1 ] ] === undefined ) {
+			process.env[ match[ 1 ] ] = match[ 2 ];
+		}
+	}
+}
+
 export default defineConfig( {
 	testDir: './tests/e2e',
 	testMatch: /.*\.spec\.ts$/,
 	outputDir: 'test-results',
 	timeout: 60_000,
 	expect: { timeout: 10_000 },
-	fullyParallel: true,
+	// One shared store: the admin-* specs change global plugin settings, so
+	// files must not overlap in time.
+	fullyParallel: false,
+	workers: 1,
 	retries: process.env.CI ? 1 : 0,
 	reporter: process.env.CI
 		? [ [ 'github' ], [ 'html', { open: 'never' } ] ]

@@ -79,10 +79,11 @@ export async function expectOrderReceived(
 }
 
 export async function expectPhoneRejected( page: Page ): Promise< void > {
-	// The block checkout renders the notice in the form and mirrors it into
-	// an aria-live region, so the same text matches twice.
+	// Block checkout: "Billing phone is not a valid phone number." (rendered in
+	// the form and mirrored into an aria-live region, hence `.first()`).
+	// Classic checkout: "Please enter a valid phone number."
 	await expect(
-		page.getByText( /not a valid phone number/i ).first()
+		page.getByText( /(not a valid|enter a valid) phone number/i ).first()
 	).toBeVisible();
 	await expect( page ).not.toHaveURL( /order-received/ );
 }

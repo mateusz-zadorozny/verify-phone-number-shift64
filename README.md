@@ -166,7 +166,7 @@ npm run env:stop
 
 `.wp-env.json` describes the environment (latest WordPress, PHP 8.3, latest WooCommerce, this checkout as the plugin). `tests/e2e/bin/seed.sh` runs after every `wp-env start` and is idempotent: Polish store, guest checkout, cash on delivery, flat-rate shipping, one simple product (`/product/e2e-test-product/`), the block checkout at `/checkout/` and a classic one at `/classic-checkout/`. Admin login is wp-env's default (`admin` / `password`).
 
-Each git worktree gets its own containers; set `WP_ENV_PORT` to run several side by side (Playwright reads the same variable, `WP_BASE_URL` overrides it entirely). Tests live in `tests/e2e/*.spec.ts` with shared helpers in `tests/e2e/helpers/`; timeouts and retries belong in `playwright.config.ts`, never in a test.
+Each git worktree gets its own containers; set `WP_ENV_PORT` to run several side by side (Playwright reads the same variable, `WP_BASE_URL` overrides it entirely). Tests live in `tests/e2e/*.spec.ts` with shared helpers in `tests/e2e/helpers/`; timeouts and retries belong in `playwright.config.ts`, never in a test. The `admin-*` specs log in to change plugin settings (and restore them afterwards), so the suite runs with one worker; they read `TEST_ADMIN_USER` / `TEST_ADMIN_PASSWORD` from the environment or from `.ai/qa/test-env.env`, which `sh .ai/scripts/test-env-up.sh` writes (the agent-pipeline entrypoint that wraps `wp-env start` and records the running instance in `.ai/qa/test-env.json`).
 
 CI runs PHPCS and the unit suite (`.github/workflows/code-quality.yml`) and the e2e suite (`.github/workflows/e2e.yml`) on every PR. `tests/bootstrap.php` and `bin/install-wp-tests.sh` are kept for a future WordPress integration suite.
 

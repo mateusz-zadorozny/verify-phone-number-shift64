@@ -43,6 +43,10 @@ jobs:
         run: npx wp-env start
 
       - name: Run e2e tests
+        env:
+          # wp-env's built-in demo admin account (disposable, local to the job).
+          TEST_ADMIN_USER: admin
+          TEST_ADMIN_PASSWORD: password
         run: npx playwright test
 
       - name: Upload Playwright report
