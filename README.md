@@ -1,5 +1,3 @@
-
-Before either hook runs, WooCommerce itself checks phone fields with `WC_Validation::is_phone()`, whose pattern only knows ASCII whitespace: a number with a non-breaking space (pasted from Word, Outlook or a PDF) would be rejected with WooCommerce's own message before the plugin sees it. `Checkout\WhitespaceFilter` therefore collapses Unicode whitespace to plain spaces first, on `woocommerce_process_checkout_field_billing_phone` / `..._shipping_phone` (classic) and on `rest_pre_dispatch` for `/wc/store/*` requests (Store API). Only the kind of space changes, separators stay.
 # Verify Phone Number Shift64
 
 Phone number validation and formatting for WooCommerce checkout, powered by Google's [libphonenumber](https://github.com/giggsey/libphonenumber-for-php-lite) (v9).
@@ -80,6 +78,8 @@ raw input ──► Normalizer ──► PhoneValidator ──► ValidationResu
 | --- | --- | --- |
 | Classic | `woocommerce_after_checkout_validation` | `woocommerce_checkout_create_order` |
 | Block (Store API) | `woocommerce_store_api_checkout_update_order_from_request`, **POST (place order) only** – throws `RouteException`, HTTP 400 with `field` and error `code` | same hook; WooCommerce saves the order |
+
+Before either hook runs, WooCommerce itself checks phone fields with `WC_Validation::is_phone()`, whose pattern only knows ASCII whitespace: a number with a non-breaking space (pasted from Word, Outlook or a PDF) would be rejected with WooCommerce's own message before the plugin sees it. `Checkout\WhitespaceFilter` therefore collapses Unicode whitespace to plain spaces first, on `woocommerce_process_checkout_field_billing_phone` / `..._shipping_phone` (classic) and on `rest_pre_dispatch` for `/wc/store/*` requests (Store API). Only the kind of space changes, separators stay.
 
 Code layout:
 
