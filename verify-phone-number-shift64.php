@@ -92,6 +92,10 @@ add_action(
 		// Initialize plugin settings.
 		Admin\Settings::init();
 
+		// Collapse Unicode whitespace in posted phone numbers before WooCommerce's own
+		// phone check rejects them (classic checkout and Store API).
+		Checkout\WhitespaceFilter::init();
+
 		// Initialize checkout phone validation.
 		Checkout\BillingPhoneValidator::init();
 		Checkout\ShippingPhoneValidator::init();

@@ -21,13 +21,33 @@ namespace Automattic\WooCommerce\StoreApi\Exceptions {
 namespace {
 	class WP_REST_Request {
 		private $method;
+		private $route;
+		private $params;
 
-		public function __construct( $method = 'POST' ) {
+		public function __construct( $method = 'POST', $route = '/wc/store/v1/checkout', array $params = array() ) {
 			$this->method = $method;
+			$this->route  = $route;
+			$this->params = $params;
 		}
 
 		public function get_method() {
 			return $this->method;
+		}
+
+		public function get_route() {
+			return $this->route;
+		}
+
+		public function get_param( $key ) {
+			return $this->params[ $key ] ?? null;
+		}
+
+		public function set_param( $key, $value ) {
+			$this->params[ $key ] = $value;
+		}
+
+		public function get_params() {
+			return $this->params;
 		}
 	}
 

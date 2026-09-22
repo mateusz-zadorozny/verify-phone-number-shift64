@@ -29,7 +29,8 @@ class Hooks {
 		 * Filters whether a phone field is validated and formatted.
 		 *
 		 * Return false to skip the plugin for specific flows (e.g. prefilled offers,
-		 * orders placed by staff). Skipped fields are stored exactly as entered.
+		 * orders placed by staff). Skipped fields are stored as entered - only Unicode
+		 * whitespace is collapsed to plain spaces beforehand (see WhitespaceFilter).
 		 *
 		 * @param bool   $validate Default true.
 		 * @param string $field    'billing' or 'shipping'.

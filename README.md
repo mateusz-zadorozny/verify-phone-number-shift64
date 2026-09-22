@@ -79,6 +79,8 @@ raw input ──► Normalizer ──► PhoneValidator ──► ValidationResu
 | Classic | `woocommerce_after_checkout_validation` | `woocommerce_checkout_create_order` |
 | Block (Store API) | `woocommerce_store_api_checkout_update_order_from_request`, **POST (place order) only** – throws `RouteException`, HTTP 400 with `field` and error `code` | same hook; WooCommerce saves the order |
 
+Before either hook runs, WooCommerce itself checks phone fields with `WC_Validation::is_phone()`, whose pattern only knows ASCII whitespace: a number with a non-breaking space (pasted from Word, Outlook or a PDF) would be rejected with WooCommerce's own message before the plugin sees it. `Checkout\WhitespaceFilter` therefore collapses Unicode whitespace to plain spaces first, on `woocommerce_process_checkout_field_billing_phone` / `..._shipping_phone` (classic) and on `rest_pre_dispatch` for `/wc/store/*` requests (Store API). Only the kind of space changes, separators stay.
+
 Code layout:
 
 ```
@@ -88,7 +90,7 @@ src/Admin/GitHubUpdater.php       update check against GitHub releases (cached 1
 src/Admin/DependencyChecker.php   "WooCommerce missing" notice
 src/Validation/                   Normalizer, PhoneValidator, ValidationResult
 src/Formatter/PhoneFormatter.php  E.164 / international / national output
-src/Checkout/                     classic + block checkout integration, error messages, asset loading
+src/Checkout/                     classic + block checkout integration, whitespace pre-clean, error messages, asset loading
 assets/js/                        field highlighting for both checkout types
 languages/                        .pot, en_US, pl_PL
 ```
@@ -101,7 +103,7 @@ Validation logic lives in the plugin, presentation can live in the theme. All ex
 | --- | --- | --- |
 | `shift64_phone_validation_enqueue_assets` | `bool $enqueue` | Return `false` to skip the highlighting scripts when the theme has its own checkout error UX. Validation is server-side and keeps working. |
 | `shift64_phone_validation_error_message` | `string $message, ?string $code, string $field, string $context` | Reword the customer-facing message. `$code`: `missing_international_prefix`, `invalid_number`, `too_short`, `too_long`, `not_a_number`, `invalid_country_code`, `parse_error`. `$field`: `billing` / `shipping`. `$context`: `classic` / `block`. |
-| `shift64_phone_validation_should_validate` | `bool $validate, string $field, array\|WC_Order $context` | Return `false` to skip validation **and** formatting for a field in this request (e.g. staff orders). `$context` is the posted data on classic checkout, the order otherwise. |
+| `shift64_phone_validation_should_validate` | `bool $validate, string $field, array\|WC_Order $context` | Return `false` to skip validation **and** formatting for a field in this request (e.g. staff orders); the whitespace clean-up still runs. `$context` is the posted data on classic checkout, the order otherwise. |
 | `shift64_phone_validation_formatted_phone` | `string $formatted, PhoneNumber $number, string $field, WC_Order $order` | Change the value stored on the order. |
 
 ```php
