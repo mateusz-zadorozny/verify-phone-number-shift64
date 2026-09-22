@@ -16,7 +16,7 @@ Validates billing and shipping phone numbers when an order is placed and optiona
 
 * Works with classic (shortcode) checkout and block checkout (Store API)
 * Uses the address country as context, so national numbers without a prefix are understood
-* Normalizes input: strips spaces, dashes, dots and parentheses, treats leading `00` as `+`
+* Normalizes input: strips spaces, dashes, dots and parentheses, treats leading `00` as `+`; non-breaking spaces pasted from documents are cleaned up before WooCommerce's own check
 * Validation modes: default country + international, or international only (`+` required)
 * Output formats: E.164, international, national
 * Highlights the invalid phone field on checkout

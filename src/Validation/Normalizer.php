@@ -44,4 +44,28 @@ class Normalizer {
 
 		return $normalized;
 	}
+
+	/**
+	 * Collapse every run of whitespace, Unicode spaces included, into one plain space.
+	 *
+	 * Numbers pasted from Word, Outlook or a PDF often carry a non-breaking space (U+00A0),
+	 * a narrow no-break space (U+202F) or a figure space (U+2007). WooCommerce checks phone
+	 * fields with an ASCII-only pattern and rejects such input before this plugin sees it,
+	 * so the checkout integration runs this first (see Checkout\WhitespaceFilter). Unlike
+	 * normalize(), separators are kept and the value stays readable.
+	 *
+	 * @param mixed $value Posted value. Anything but a non-empty string is returned untouched.
+	 * @return mixed
+	 */
+	public static function collapse_whitespace( $value ) {
+		if ( ! is_string( $value ) || '' === $value ) {
+			return $value;
+		}
+
+		// With the "u" flag \s also matches Unicode spaces. It returns null for invalid
+		// UTF-8 - keep the original then, WooCommerce rejects such input anyway.
+		$collapsed = preg_replace( '/\s+/u', ' ', $value );
+
+		return null === $collapsed ? $value : trim( $collapsed );
+	}
 }

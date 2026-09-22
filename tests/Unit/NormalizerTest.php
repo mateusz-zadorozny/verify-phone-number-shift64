@@ -31,4 +31,26 @@ class NormalizerTest extends TestCase {
 			'only separators'       => array( ' - ( ) . ', '' ),
 		);
 	}
+
+	/**
+	 * @dataProvider whitespace_inputs
+	 */
+	public function test_collapse_whitespace( $input, $expected ): void {
+		$this->assertSame( $expected, Normalizer::collapse_whitespace( $input ) );
+	}
+
+	public function whitespace_inputs(): array {
+		return array(
+			'plain spaces stay'         => array( '600 100 200', '600 100 200' ),
+			'non-breaking space'        => array( "600\u{00A0}100\u{00A0}200", '600 100 200' ),
+			'narrow no-break space'     => array( "+48\u{202F}600\u{202F}100\u{202F}200", '+48 600 100 200' ),
+			'figure space'              => array( "600\u{2007}100\u{2007}200", '600 100 200' ),
+			'runs collapse, edges trim' => array( "\u{00A0}600 \u{00A0} 100\t200\n", '600 100 200' ),
+			'separators are kept'       => array( "(22)\u{00A0}410-05-00", '(22) 410-05-00' ),
+			'invalid utf-8 is kept'     => array( "600\u{00A0}100\xff200", "600\u{00A0}100\xff200" ),
+			'empty'                     => array( '', '' ),
+			'array passes through'      => array( array( '600' ), array( '600' ) ),
+			'null passes through'       => array( null, null ),
+		);
+	}
 }
