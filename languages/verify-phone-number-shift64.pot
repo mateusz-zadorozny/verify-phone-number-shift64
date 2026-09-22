@@ -1,4 +1,4 @@
-# Copyright (C) 2026 Shift64
+# Copyright (C) 2026 Mateusz Zadorożny (SHIFT64)
 # This file is distributed under the same license as the Verify Phone Number Shift64 plugin.
 msgid ""
 msgstr ""
@@ -21,7 +21,7 @@ msgstr ""
 
 #. Plugin URI of the plugin
 #: verify-phone-number-shift64.php
-msgid "https://shift64.com/plugins/verify-phone-number"
+msgid "https://shift64.com/services/custom-woocommerce-coding"
 msgstr ""
 
 #. Description of the plugin
@@ -31,7 +31,7 @@ msgstr ""
 
 #. Author of the plugin
 #: verify-phone-number-shift64.php
-msgid "Shift64"
+msgid "Mateusz Zadorożny (SHIFT64)"
 msgstr ""
 
 #. Author URI of the plugin

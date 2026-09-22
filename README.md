@@ -163,6 +163,12 @@ Releases are fully automated with [semantic-release](https://semantic-release.gi
 
 Full walkthrough of the pipeline: [docs/CI-CD-SETUP.md](docs/CI-CD-SETUP.md). Version history: [CHANGELOG.md](CHANGELOG.md).
 
+## Credits
+
+Created and maintained by Mateusz Zadorożny at **SHIFT64**.
+
+Sponsored by SHIFT64 – [Custom WooCommerce Coding](https://shift64.com/services/custom-woocommerce-coding).
+
 ## License
 
 GPL-2.0-or-later

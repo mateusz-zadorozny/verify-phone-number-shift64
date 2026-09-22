@@ -52,3 +52,9 @@ No. It is validated only when the customer fills it in.
 == Changelog ==
 
 See CHANGELOG.md in the GitHub repository: https://github.com/mateusz-zadorozny/verify-phone-number-shift64/blob/master/CHANGELOG.md
+
+== Credits ==
+
+Created and maintained by Mateusz Zadorożny at SHIFT64.
+
+Sponsored by SHIFT64 - Custom WooCommerce Coding: https://shift64.com/services/custom-woocommerce-coding

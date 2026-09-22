@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name:     Verify Phone Number Shift64
- * Plugin URI:      https://shift64.com/plugins/verify-phone-number
+ * Plugin URI:      https://shift64.com/services/custom-woocommerce-coding
  * Description:     Smart phone number validation and formatting for WordPress using Google's libphonenumber library.
- * Author:          Shift64
+ * Author:          Mateusz Zadorożny (SHIFT64)
  * Author URI:      https://shift64.com
  * Text Domain:     verify-phone-number-shift64
  * Domain Path:     /languages
