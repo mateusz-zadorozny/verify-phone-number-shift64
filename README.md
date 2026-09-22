@@ -152,7 +152,23 @@ composer test         # PHPUnit unit suite (tests/Unit), no WordPress required
 
 The unit suite covers the pure logic: `Normalizer`, `PhoneValidator` (including error codes), `PhoneFormatter`, `ValidationResult` and the checkout error-message mapping in English and Polish. WordPress is not loaded; `get_option()` and `__()` are replaced by small stubs in `tests/Unit/bootstrap.php`.
 
-There are **no integration tests yet** – the WooCommerce hooks (classic checkout, Store API) are not exercised automatically. CI (`.github/workflows/code-quality.yml`) runs PHPCS and the unit suite on every PR. `tests/bootstrap.php` and `bin/install-wp-tests.sh` are kept for a future WordPress integration suite.
+#### End-to-end (WooCommerce checkout in a real browser)
+
+The e2e suite drives a real WordPress + WooCommerce store with the plugin active, through both checkout flavours (block / Store API and the classic shortcode). It needs Docker.
+
+```bash
+npm ci
+npx playwright install chromium
+npm run env:start    # composer install + wp-env start; seeds the store on every start
+npm run test:e2e     # Playwright against http://localhost:8888
+npm run env:stop
+```
+
+`.wp-env.json` describes the environment (latest WordPress, PHP 8.3, latest WooCommerce, this checkout as the plugin). `tests/e2e/bin/seed.sh` runs after every `wp-env start` and is idempotent: Polish store, guest checkout, cash on delivery, flat-rate shipping, one simple product (`/product/e2e-test-product/`), the block checkout at `/checkout/` and a classic one at `/classic-checkout/`. Admin login is wp-env's default (`admin` / `password`).
+
+Each git worktree gets its own containers; set `WP_ENV_PORT` to run several side by side (Playwright reads the same variable, `WP_BASE_URL` overrides it entirely). Tests live in `tests/e2e/*.spec.ts` with shared helpers in `tests/e2e/helpers/`; timeouts and retries belong in `playwright.config.ts`, never in a test.
+
+CI runs PHPCS and the unit suite (`.github/workflows/code-quality.yml`) and the e2e suite (`.github/workflows/e2e.yml`) on every PR. `tests/bootstrap.php` and `bin/install-wp-tests.sh` are kept for a future WordPress integration suite.
 
 ### Releases
 

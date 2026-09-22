@@ -4,15 +4,23 @@
   "description": "Smart phone number validation and formatting for WordPress using Google's libphonenumber library",
   "private": true,
   "scripts": {
-    "release": "semantic-release"
+    "release": "semantic-release",
+    "env:start": "composer install --prefer-dist --no-interaction && wp-env start",
+    "env:stop": "wp-env stop",
+    "env:destroy": "wp-env destroy",
+    "env:seed": "sh tests/e2e/bin/seed.sh",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/commit-analyzer": "^13.0.0",
     "@semantic-release/exec": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^10.0.0",
     "@semantic-release/release-notes-generator": "^14.0.0",
+    "@wordpress/env": "^11.15.0",
     "semantic-release": "^24.0.0"
   },
   "repository": {
