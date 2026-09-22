@@ -76,7 +76,9 @@ acquire_lock() {
 	done
 	LOCKED=1
 	printf '{ "pid": %s, "source": "test-env-up.sh", "acquiredAt": "%s" }\n' "$$" "$(date -u +%FT%TZ)" > "$LOCK_DIR/owner.json"
-	trap release_lock EXIT INT TERM
+	trap release_lock EXIT
+	trap 'exit 130' INT
+	trap 'exit 143' TERM
 }
 acquire_lock
 
