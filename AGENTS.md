@@ -22,6 +22,7 @@ The plugin is PHP 8.3+, PSR-4 autoloaded under `Shift64\SmartPhoneValidation` fr
 | Tests | `tests/Unit/`, `tests/Unit/TestCase.php`, `tests/Unit/stubs-woocommerce.php` | Unit tests run without WordPress: WooCommerce and WP functions are stubbed in `stubs-woocommerce.php`. A test needing a new WP function adds a stub there rather than booting WordPress. Every bug fix ships a regression test. |
 | CI, release, or versioning | `.github/workflows/`, `.releaserc.json`, `scripts/update-version.sh` | `pr-lint.yml` validates the PR title against Conventional Commits, and because merges are squashed that title drives the release: `feat:` → minor, `fix:`/`perf:` → patch, anything else → no release. |
 | Packaging / what ships in the ZIP | `.distignore` | Anything added at the repo root that is not plugin runtime code belongs in `.distignore`. |
+| Product discovery, a brief, or a backlog | `.ai/specs/product-brief.md`, `.ai/specs/research/`, `.ai/specs/backlog.md`, and the *Definition of Ready* and *Product decisions as a protected contract* sections of `SDLC.md` | The brief's non-goals, business rules, and decisions are a protected contract: a change that contradicts one is a blocker unless the same PR supersedes the entry. Synthetic personas are hypotheses, never evidence. <!-- discovery:routing --> |
 
 ## Validation gate
 
