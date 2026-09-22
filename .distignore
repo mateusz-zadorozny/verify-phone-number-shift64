@@ -33,6 +33,10 @@ multisite.xml.dist
 phpcs.xml
 .phpcs.xml.dist
 phpcs.xml.dist
+.wp-env.json
+playwright.config.ts
+playwright-report
+test-results
 README.md
 webpack.config.js
 wp-cli.local.yml

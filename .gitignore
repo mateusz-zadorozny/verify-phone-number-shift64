@@ -22,3 +22,9 @@ CLAUDE.md
 .ai/qa/test-env.env
 .vscode/
 .phpunit.result.cache
+
+# Playwright e2e output.
+test-results/
+playwright-report/
+.ai/qa/test-env-build-cache.json
+.ai/qa/test-env.lock/
