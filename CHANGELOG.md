@@ -1,3 +1,10 @@
+## [1.4.2](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.4.1...v1.4.2) (2026-09-22)
+
+
+### Bug Fixes
+
+* **checkout:** collapse unicode whitespace before woocommerce validates phones ([#24](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/24)) ([790a3b9](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/790a3b9feb8bd9226f9bb247643acdb2b8268608))
+
 ## [1.4.1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.4.0...v1.4.1) (2026-09-22)
 
 
