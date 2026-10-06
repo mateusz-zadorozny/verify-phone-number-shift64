@@ -1,0 +1,137 @@
+name: WordPress.org deploy (manual)
+
+# Builds an EXISTING release tag and sends the package to WordPress.org SVN and/or to the
+# GitHub release. Works for tags that contain scripts/build-package.sh, i.e. v1.5.0 and later.
+#   - Once right after the plugin is approved: SVN stays empty until the next release otherwise.
+#   - To retry the SVN deploy of the LATEST release (e.g. SVN was down during release.yml).
+#     An older tag is refused unless allow-older is checked: the action rsyncs the build over
+#     trunk, so trunk and "Stable tag" would move back to the older version, and dispatching
+#     the newer tag again cannot repair that (the action bails once tags/<version> exists).
+#     That same early bail makes the SVN deploy a no-op for a version already in SVN tags/.
+#   - To attach a missing verify-phone-number-shift64.zip to the GitHub release when
+#     release.yml failed after the release was published (re-running the Release job does not
+#     rebuild it). 1.4.x installs update through exactly that asset. Uncheck svn to only attach
+#     the ZIP, e.g. before the plugin is approved and the SVN secrets exist.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag to deploy, e.g. v1.5.0"
+        required: true
+        type: string
+      upload-zip:
+        description: "Attach the package ZIP to the GitHub release (replaces an existing one)"
+        type: boolean
+        default: true
+      svn:
+        description: "Deploy to WordPress.org SVN (needs the SVN_USERNAME / SVN_PASSWORD secrets)"
+        type: boolean
+        default: true
+      allow-older:
+        description: "Deploy to SVN even though a newer release exists (moves trunk and Stable tag back)"
+        type: boolean
+        default: false
+
+permissions:
+  # gh release upload.
+  contents: write
+
+# Shares the "release" group with release.yml, so a deploy never overlaps a release. GitHub keeps
+# only ONE waiting run per group and cancels the waiting run it replaces: dispatching this while
+# a Release run is running and another one is queued cancels the queued Release run (and a push
+# to master cancels a queued deploy). Dispatch only when no Release run is queued; if a Release
+# run shows as cancelled, re-run it from the Actions tab.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  PLUGIN_SLUG: verify-phone-number-shift64
+
+jobs:
+  deploy:
+    name: Deploy ${{ inputs.tag }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check tag
+        id: version
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          set -euo pipefail
+          if [[ ! "${TAG}" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::Tag must look like v1.5.0, got '${TAG}'"
+            exit 1
+          fi
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+      # Fails before anything is built, so a missing secret or an older tag costs no SVN commit.
+      - name: Check WordPress.org deploy
+        if: inputs.svn
+        env:
+          TAG: ${{ inputs.tag }}
+          ALLOW_OLDER: ${{ inputs.allow-older }}
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SVN_USERNAME}" ] || [ -z "${SVN_PASSWORD}" ]; then
+            echo "::error::Set the SVN_USERNAME and SVN_PASSWORD repository secrets first, or uncheck svn to only attach the ZIP."
+            exit 1
+          fi
+          latest="$(gh release view --json tagName --jq .tagName)"
+          if [ "${TAG}" != "${latest}" ] && [ "${ALLOW_OLDER}" != "true" ]; then
+            echo "::error::${TAG} is not the latest release (${latest}); deploying it would put older code on SVN trunk and move Stable tag back. Check allow-older to do it anyway."
+            exit 1
+          fi
+
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          persist-credentials: false
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer:v2
+          coverage: none
+
+      - name: Install Composer dependencies (production)
+        run: composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
+
+      - name: Verify the tag carries this version
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          set -euo pipefail
+          grep -qxF "Stable tag: ${VERSION}" readme.txt
+          grep -qxF " * Version:         ${VERSION}" "${PLUGIN_SLUG}.php"
+
+      - name: Build plugin package
+        id: build
+        run: ./scripts/build-package.sh "${RUNNER_TEMP}/package"
+
+      # Same fixed asset name as release.yml: 1.4.x installs download exactly this file.
+      - name: Upload package to the GitHub release
+        if: inputs.upload-zip
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ inputs.tag }}
+          ZIP: ${{ steps.build.outputs.zip }}
+        run: gh release upload "${TAG}" "${ZIP}" --clobber
+
+      - name: Deploy to WordPress.org
+        if: inputs.svn
+        uses: 10up/action-wordpress-plugin-deploy@54bd289b8525fd23a5c365ec369185f2966529c2 # 2.3.0
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: ${{ env.PLUGIN_SLUG }}
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD_DIR: ${{ steps.build.outputs.dir }}
+          ASSETS_DIR: .wordpress-org

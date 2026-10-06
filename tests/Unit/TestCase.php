@@ -33,13 +33,10 @@ abstract class TestCase extends PHPUnitTestCase {
 		$GLOBALS['shift64_test_options']      = array();
 		$GLOBALS['shift64_test_translations'] = array();
 		$GLOBALS['shift64_test_filters']      = array();
-		$GLOBALS['shift64_test_transients']   = array();
 		$GLOBALS['shift64_test_locale']       = array(
 			'current'  => 'en_US',
 			'switches' => array(),
 		);
-
-		$GLOBALS['shift64_test_plugin_basename'] = 'verify-phone-number-shift64/verify-phone-number-shift64.php';
 	}
 
 	protected function set_option( string $key, string $value ): void {

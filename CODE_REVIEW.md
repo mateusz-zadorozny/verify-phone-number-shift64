@@ -28,7 +28,7 @@ New option added but not deleted in `uninstall.php` → Blocker. It leaks after 
 
 - Every value that reaches output is escaped (`esc_html`, `esc_attr`, `wp_kses_post`) and every input is sanitized. PHPCS catches most of this; it does not catch all of it.
 - Settings writes are capability-checked and nonce-verified.
-- `GitHubUpdater` talks to the network: responses are untrusted input, failures are non-fatal, and no token or URL with credentials is logged.
+- No update checker and no outgoing HTTP request may be introduced or reintroduced: no `wp_remote_*` / `wp_safe_remote_*` call and no hook on `pre_set_site_transient_update_plugins`, `plugins_api` or `upgrader_*`. Serving updates from anywhere but WordPress.org breaks Detailed Plugin Guideline 8, which is why the GitHub self-updater was removed (D05) → Blocker.
 - Phone numbers are personal data. They do not belong in logs, error messages shown to other users, or debug output.
 
 ### 4. WordPress and WooCommerce conventions
@@ -49,14 +49,15 @@ New option added but not deleted in `uninstall.php` → Blocker. It leaks after 
 ### 6. Tests
 
 - Every bug fix ships a regression test that fails without the fix.
-- Tests run without WordPress: new WP/WooCommerce functions are stubbed in `tests/Unit/stubs-woocommerce.php`.
+- Tests run without WordPress: new WordPress functions are stubbed in `tests/Unit/bootstrap.php`, new WooCommerce classes in `tests/Unit/stubs-woocommerce.php`.
 - A change to the validation or formatting rules without a test asserting the new behavior is a Blocker.
 
 ### 7. Packaging and release
 
 - Anything new at the repo root that is not plugin runtime code is added to `.distignore`.
-- Version numbers are never edited by hand — `scripts/update-version.sh` is driven by semantic-release.
-- The PR title is a valid Conventional Commit and describes the change accurately: it is squashed into the commit that decides the next release. A `feat:` title on a bug fix ships a wrong version number.
+- Version numbers are never edited by hand — `scripts/update-version.sh` is driven by semantic-release, and it also adds each release's entry to the `readme.txt` changelog.
+- The `package` job in `code-quality.yml` builds the release package and runs Plugin Check on it. It must stay at 0 errors: a new error is a Blocker, including one caused only by a development file that now ships in the package (the fix is `.distignore`, not the check).
+- The PR title is a valid Conventional Commit and describes the change accurately: it is squashed into the commit that decides the next release. A `feat:` title on a bug fix ships a wrong version number. A breaking change needs a `BREAKING CHANGE:` footer in the squash commit message; a `feat!:` title cuts no release here.
 
 ## Validation gate
 

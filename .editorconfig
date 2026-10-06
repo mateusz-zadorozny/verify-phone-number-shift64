@@ -20,3 +20,7 @@ indent_size = 2
 
 [{*.txt,wp-config-sample.php}]
 end_of_line = crlf
+
+# WordPress.org parses readme.txt; .gitattributes keeps it LF in git, so keep editors in step.
+[readme.txt]
+end_of_line = lf

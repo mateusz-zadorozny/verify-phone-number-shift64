@@ -12,6 +12,11 @@ namespace Shift64\SmartPhoneValidation\Checkout;
 use Shift64\SmartPhoneValidation\Admin\Settings;
 use Shift64\SmartPhoneValidation\Validation\PhoneValidator;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Handles billing phone validation and formatting during WooCommerce checkout.
  */

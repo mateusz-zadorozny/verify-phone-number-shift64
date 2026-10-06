@@ -1,49 +1,64 @@
-# A set of files you probably don't want in your WordPress.org distribution
-.babelrc
-.deployignore
-.distignore
-.editorconfig
-.eslintignore
-.eslintrc
-.git
-.gitignore
-.github
-.ai
-.claude
-skills-lock.json
-.gitlab-ci.yml
-.travis.yml
-.DS_Store
-.*~
+# Files left out of the plugin package: the GitHub release ZIP and WordPress.org SVN trunk.
+#
+# This file is the single source of truth for what ships. scripts/build-package.sh reads it
+# with `rsync --exclude-from=.distignore`, and release.yml hands the resulting folder to the
+# 10up deploy action as BUILD_DIR, so the action never applies its own rules.
+#
+# Syntax is rsync's: a pattern starting with "/" matches only at the plugin root, a pattern
+# without "/" matches at any depth (vendor/ included). There is no negation, so never add a
+# bare "vendor" or "composer.json" here: vendor/ holds the runtime autoloader and
+# libphonenumber, and composer.json must ship next to it (Plugin Check warning
+# missing_composer_json_file).
+
+# Hidden files and folders anywhere: .git, .github, .ai, .claude, .wordpress-org (deployed to
+# SVN /assets, not into the plugin), .wp-env.json, .phpcs.xml.dist, .releaserc.json,
+# .editorconfig, .distignore, .DS_Store, ... Plugin Check reports hidden files as errors.
+.*
+
+# Release tooling
+/scripts
+/package.json
+/package-lock.json
+/node_modules
+/composer.lock
+/dist
+
+# Quality tooling and tests
+/phpcs.xml
+/phpcs.xml.dist
+/phpunit.xml
+/phpunit.xml.dist
+/playwright.config.ts
+/playwright-report
+/test-results
+/tests
+/bin
+/wp-cli.local.yml
+
+# AI agent pipeline and contributor documentation
+/skills-lock.json
+/tasks
+/AGENTS.md
+/CLAUDE.md
+/SDLC.md
+/CODE_REVIEW.md
+/BACKWARD_COMPATIBILITY.md
+/README.md
+/CHANGELOG.md
+/docs
+
+# Anywhere in the tree, vendor/ included
 Thumbs.db
-behat.yml
-bitbucket-pipelines.yml
-bin
-composer.json
-composer.lock
-dependencies.yml
-Gruntfile.js
-package.json
-package-lock.json
-phpunit.xml
-phpunit.xml.dist
-multisite.xml
-multisite.xml.dist
-.phpcs.xml
-phpcs.xml
-.phpcs.xml.dist
-phpcs.xml.dist
-.wp-env.json
-playwright.config.ts
-playwright-report
-test-results
-README.md
-webpack.config.js
-wp-cli.local.yml
-yarn.lock
-tests
-vendor
-node_modules
+*~
+*.log
 *.sql
-*.tar.gz
 *.zip
+*.tar
+*.tgz
+*.gz
+*.rar
+*.7z
+*.phar
+*.sh
+*.dist
+qodana.yaml

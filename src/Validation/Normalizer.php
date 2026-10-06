@@ -9,6 +9,11 @@ declare(strict_types=1);
 
 namespace Shift64\SmartPhoneValidation\Validation;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Normalizes phone number input before parsing.
  */

@@ -7,6 +7,11 @@ on:
   push:
     branches:
       - master
+  # Weekly against whatever WordPress and WooCommerce are current, so a new major release
+  # is noticed before users report it ("Tested up to" / "WC tested up to").
+  schedule:
+    - cron: "17 5 * * 1"
+  workflow_dispatch:
 
 jobs:
   playwright:
@@ -41,6 +46,16 @@ jobs:
 
       - name: Start WordPress + WooCommerce (wp-env) and seed the store
         run: npx wp-env start
+
+      - name: Show WordPress and WooCommerce versions
+        run: |
+          # wp-env adds status lines around the output; keep the version-shaped line only.
+          version_of() { npx wp-env run cli "$@" 2>/dev/null | grep -E '^[0-9]+(\.[0-9]+)+' | tail -n 1 || true; }
+          wp_version="$(version_of wp core version)"
+          # Not `wp plugin get woocommerce`: wp-env installs the ZIP into woocommerce.latest-stable/.
+          wc_version="$(version_of wp eval 'echo WC_VERSION;')"
+          echo "WordPress ${wp_version:-unknown}, WooCommerce ${wc_version:-unknown}"
+          echo "E2E ran against WordPress ${wp_version:-unknown} and WooCommerce ${wc_version:-unknown} (PHP 8.3)." >> "$GITHUB_STEP_SUMMARY"
 
       - name: Run e2e tests
         env:

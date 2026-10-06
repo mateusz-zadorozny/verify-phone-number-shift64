@@ -9,6 +9,11 @@ declare(strict_types=1);
 
 namespace Shift64\SmartPhoneValidation\Admin;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Manages plugin settings within WooCommerce settings pages.
  */

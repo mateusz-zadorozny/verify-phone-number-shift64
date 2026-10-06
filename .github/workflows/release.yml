@@ -10,6 +10,21 @@ permissions:
   issues: write
   pull-requests: write
 
+# One release at a time: two quick merges must not run semantic-release or SVN commits in
+# parallel. A run that waits here and is replaced by a newer push loses nothing: the newer
+# run releases every commit since the last tag.
+# The manual wporg-deploy.yml shares this group, and GitHub keeps only ONE waiting run per
+# group: a wporg-deploy dispatched while a Release run is running and another one is queued
+# cancels the queued Release run, and nothing releases its commits until the next push.
+# Dispatch wporg-deploy only when no Release run is queued; if a Release run shows as
+# cancelled, re-run it from the Actions tab.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+env:
+  PLUGIN_SLUG: verify-phone-number-shift64
+
 jobs:
   release:
     name: Release
@@ -32,10 +47,11 @@ jobs:
         with:
           php-version: "8.3"
           tools: composer:v2
+          coverage: none
 
       - name: Get Composer cache directory
         id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Composer dependencies
         uses: actions/cache@v4
@@ -49,61 +65,83 @@ jobs:
         run: npm ci
 
       - name: Install Composer dependencies (production)
-        run: composer install --no-dev --optimize-autoloader --prefer-dist
+        run: composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
 
+      # Fail BEFORE semantic-release tags anything if the package would be broken
+      # (missing LICENSE or vendor/, a stray hidden file, ...). Built from the pre-release tree.
+      - name: Validate plugin package
+        run: ./scripts/build-package.sh "${RUNNER_TEMP}/package-check"
+
+      # prepare: @semantic-release/changelog -> scripts/update-version.sh (version strings and
+      # the readme.txt changelog) -> @semantic-release/git commits and pushes, then the tag is
+      # created on that commit. The release commit is pushed with GITHUB_TOKEN, so it starts no
+      # other workflow; everything that must happen after a release happens in this job.
       - name: Run Semantic Release
         id: semantic
         uses: cycjimmy/semantic-release-action@v4
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build release artifact
-        if: steps.semantic.outputs.new_release_published == 'true'
-        run: |
-          # Create dist directory
-          mkdir -p dist
-
-          # Copy plugin files (excluding dev files)
-          rsync -av --progress . dist/verify-phone-number-shift64/ \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='.circleci' \
-            --exclude='.claude' \
-            --exclude='.ai' \
-            --exclude='skills-lock.json' \
-            --exclude='.ralph-tui' \
-            --exclude='node_modules' \
-            --exclude='dist' \
-            --exclude='tests' \
-            --exclude='bin' \
-            --exclude='tasks' \
-            --exclude='*.zip' \
-            --exclude='*.tar.gz' \
-            --exclude='*.sql' \
-            --exclude='.git*' \
-            --exclude='.editorconfig' \
-            --exclude='.phpcs.xml.dist' \
-            --exclude='.distignore' \
-            --exclude='phpunit.xml.dist' \
-            --exclude='composer.json' \
-            --exclude='composer.lock' \
-            --exclude='package.json' \
-            --exclude='package-lock.json' \
-            --exclude='.releaserc.json' \
-            --exclude='CHANGELOG.md'
-
-          # Create zip archive
-          cd dist
-          zip -r verify-phone-number-shift64.zip verify-phone-number-shift64
-
-          echo "Release artifact created: dist/verify-phone-number-shift64.zip"
-          echo "Version: ${{ steps.semantic.outputs.new_release_version }}"
-
-      - name: Upload artifact to release
+      # @semantic-release/git committed the bumped files in THIS workspace, so HEAD already is
+      # the release commit. Prove it, so the package can never be built from the pre-release tree.
+      - name: Verify workspace is the release commit
         if: steps.semantic.outputs.new_release_published == 'true'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ steps.semantic.outputs.new_release_version }}
+          TAG: ${{ steps.semantic.outputs.new_release_git_tag }}
         run: |
-          gh release upload "v${{ steps.semantic.outputs.new_release_version }}" \
-            dist/verify-phone-number-shift64.zip \
-            --clobber
+          set -euo pipefail
+          test "$(git rev-parse HEAD)" = "$(git rev-parse "${TAG}^{commit}")"
+          # A file changed by update-version.sh but missing from the @semantic-release/git
+          # assets would be modified here without being part of the tag.
+          git diff --exit-code HEAD --
+          grep -qxF "Stable tag: ${VERSION}" readme.txt
+          grep -qxF " * Version:         ${VERSION}" "${PLUGIN_SLUG}.php"
+          grep -qF "define( 'SHIFT64_PHONE_VALIDATION_VERSION', '${VERSION}' );" "${PLUGIN_SLUG}.php"
+
+      # One build, two consumers: the GitHub release ZIP and WordPress.org SVN trunk.
+      - name: Build plugin package
+        id: build
+        if: steps.semantic.outputs.new_release_published == 'true'
+        run: ./scripts/build-package.sh "${RUNNER_TEMP}/package"
+
+      # The asset name is fixed: installs still on 1.4.x download exactly this file through
+      # their built-in GitHub updater, which is how they reach the WordPress.org version.
+      - name: Upload package to the GitHub release
+        if: steps.semantic.outputs.new_release_published == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.semantic.outputs.new_release_git_tag }}
+          ZIP: ${{ steps.build.outputs.zip }}
+        run: gh release upload "${TAG}" "${ZIP}" --clobber
+
+      # Secrets cannot be used in `if:`, so read them into a step output. Until the plugin is
+      # approved and the secrets exist, the deploy is skipped and the job stays green.
+      - name: Check WordPress.org credentials
+        id: wporg
+        if: steps.semantic.outputs.new_release_published == 'true'
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+        run: |
+          if [ -n "${SVN_USERNAME}" ] && [ -n "${SVN_PASSWORD}" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=WordPress.org deploy skipped::SVN_USERNAME / SVN_PASSWORD are not set. The GitHub release and its ZIP were published."
+          fi
+
+      # Commits the package folder to SVN trunk, copies it to tags/<version> and syncs
+      # .wordpress-org/ to /assets, all in one SVN commit.
+      - name: Deploy to WordPress.org
+        if: steps.wporg.outputs.enabled == 'true'
+        uses: 10up/action-wordpress-plugin-deploy@54bd289b8525fd23a5c365ec369185f2966529c2 # 2.3.0
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: ${{ env.PLUGIN_SLUG }}
+          # Required: on a push to master GITHUB_REF is refs/heads/master, not a tag.
+          VERSION: ${{ steps.semantic.outputs.new_release_version }}
+          # Deploy exactly what was zipped above (the action does not re-apply .distignore).
+          BUILD_DIR: ${{ steps.build.outputs.dir }}
+          ASSETS_DIR: .wordpress-org

@@ -93,6 +93,21 @@ class WhitespaceFilterTest extends TestCase {
 		$this->assertSame( self::NBSP_NUMBER, $request->get_param( 'billing_address' )['phone'] );
 	}
 
+	/**
+	 * Only routes that START with the Store API prefix are cleaned, not routes that merely contain it.
+	 */
+	public function test_route_containing_the_store_api_prefix_later_is_untouched(): void {
+		$request = new \WP_REST_Request(
+			'POST',
+			'/other-plugin/v1/wc/store/v1/checkout',
+			array( 'billing_address' => array( 'phone' => self::NBSP_NUMBER ) )
+		);
+
+		WhitespaceFilter::filter_store_api_request( null, null, $request );
+
+		$this->assertSame( self::NBSP_NUMBER, $request->get_param( 'billing_address' )['phone'] );
+	}
+
 	public function test_short_circuited_dispatch_is_passed_through_unchanged(): void {
 		$request  = new \WP_REST_Request(
 			'POST',

@@ -24,7 +24,7 @@ jobs:
 
       - name: Get Composer cache directory
         id: composer-cache
-        run: echo "dir=$(composer config cache-files-dir)" >> $GITHUB_OUTPUT
+        run: echo "dir=$(composer config cache-files-dir)" >> "$GITHUB_OUTPUT"
 
       - name: Cache Composer dependencies
         uses: actions/cache@v4
@@ -65,5 +65,54 @@ jobs:
       - name: Install Composer dependencies
         run: composer install --prefer-dist
 
+      # An ABSPATH guard reached outside WordPress makes PHPUnit exit 0 with no output, which
+      # would look green. Require the summary line so a silent exit fails the job; "OK, but
+      # incomplete, skipped, or risky tests!" is still a pass. An explicit `shell: bash` runs
+      # with -o pipefail, so a failing PHPUnit fails the step through the tee as well.
       - name: Run unit tests
-        run: composer test
+        shell: bash
+        run: |
+          composer test | tee phpunit.log
+          grep -Eq '^OK( \(|, but )' phpunit.log
+
+  package:
+    name: Package + Plugin Check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # Plugin Check keeps one summary comment on the PR up to date.
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          tools: composer:v2
+          coverage: none
+
+      - name: Install Composer dependencies (production)
+        run: composer install --no-dev --optimize-autoloader --prefer-dist --no-interaction
+
+      # The same script release.yml uses for the GitHub ZIP and WordPress.org SVN trunk.
+      - name: Build plugin package
+        id: build
+        run: ./scripts/build-package.sh "${RUNNER_TEMP}/package"
+
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: verify-phone-number-shift64
+          path: ${{ steps.build.outputs.zip }}
+          retention-days: 14
+
+      # Runs the latest Plugin Check on the built folder in wp-env (latest WordPress), with
+      # WooCommerce installed from "Requires Plugins". Any ERROR fails the job; WARNINGs are
+      # reported as annotations and in the PR comment but do not fail it.
+      - name: Plugin Check
+        uses: WordPress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e # v1.1.9
+        with:
+          build-dir: ${{ steps.build.outputs.dir }}
+          wp-version: latest

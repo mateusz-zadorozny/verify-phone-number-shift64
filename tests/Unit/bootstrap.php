@@ -10,7 +10,17 @@
  * @package Shift64\SmartPhoneValidation\Tests
  */
 
+// Every file under src/ exits when ABSPATH is undefined (direct-access guard). Without
+// this define the first src/ file loaded would end PHPUnit with exit code 0 and no tests
+// run - a silent fake pass. Keep it above anything that loads plugin code.
+if ( ! defined( 'ABSPATH' ) ) {
+	define( 'ABSPATH', dirname( __DIR__, 2 ) . '/' );
+}
+
 require_once dirname( __DIR__, 2 ) . '/vendor/autoload.php';
+
+// Loaded by the main plugin file in WordPress, not by Composer (see composer.json).
+require_once dirname( __DIR__, 2 ) . '/src/functions.php';
 
 $GLOBALS['shift64_test_options']      = array();
 $GLOBALS['shift64_test_translations'] = array();
@@ -37,28 +47,14 @@ if ( ! function_exists( '__' ) ) {
 	}
 }
 
-// --- Stubs used by the updater tests -----------------------------------------
+// --- Plugin constant and path helper used when translations are reloaded ----
 if ( ! defined( 'SHIFT64_PHONE_VALIDATION_FILE' ) ) {
 	define( 'SHIFT64_PHONE_VALIDATION_FILE', dirname( __DIR__, 2 ) . '/verify-phone-number-shift64.php' );
-	define( 'SHIFT64_PHONE_VALIDATION_VERSION', '1.0.0' );
 }
-
-$GLOBALS['shift64_test_plugin_basename'] = 'verify-phone-number-shift64/verify-phone-number-shift64.php';
-$GLOBALS['shift64_test_transients']      = array();
 
 if ( ! function_exists( 'plugin_basename' ) ) {
 	function plugin_basename( $file ) {
-		return $GLOBALS['shift64_test_plugin_basename'];
-	}
-	function get_transient( $key ) {
-		return $GLOBALS['shift64_test_transients'][ $key ] ?? false;
-	}
-	function set_transient( $key, $value, $expiration = 0 ) {
-		$GLOBALS['shift64_test_transients'][ $key ] = $value;
-		return true;
-	}
-	function trailingslashit( $value ) {
-		return rtrim( $value, '/' ) . '/';
+		return 'verify-phone-number-shift64/' . basename( $file );
 	}
 }
 

@@ -2,7 +2,7 @@
 
 This plugin runs inside other people's stores. Its protected contract surfaces are the things a site owner, a theme, or an integration can already depend on and cannot see us change. A PR that alters one without following the required path below is a **blocker** in review, not a nit.
 
-Versioning is semantic and automated: a breaking change to any surface here needs a `!` (or a `BREAKING CHANGE:` footer) on the squash-merge subject, so `semantic-release` cuts a major release.
+Versioning is semantic and automated: a breaking change to any surface here needs a `BREAKING CHANGE:` footer in the squash-merge commit message, so `semantic-release` cuts a major release. The `!` shorthand on the subject (`feat!:`) does not work here: this repository's angular preset does not parse it, so such a commit cuts no release at all.
 
 ## Protected surfaces
 
@@ -14,7 +14,7 @@ Themes and integrations hook these. Names, parameter order, parameter types, and
 |---|---|---|
 | `shift64_phone_validation_should_validate` | `bool $validate, string $field, mixed $context` | `src/Checkout/Hooks.php` |
 | `shift64_phone_validation_formatted_phone` | `string $formatted, PhoneNumber $phone_number, string $field, WC_Order $order` | `src/Checkout/Hooks.php` |
-| `shift64_phone_validation_error_message` | `string $message, string $error_code, string $field, mixed $context` | `src/Checkout/ErrorMessages.php` |
+| `shift64_phone_validation_error_message` | `string $message, ?string $error_code, string $field, string $context` | `src/Checkout/ErrorMessages.php` |
 | `shift64_phone_validation_enqueue_assets` | `bool $enqueue` | `src/Checkout/Assets.php` |
 
 **Breaking:** renaming or removing a filter; reordering, removing, or retyping a parameter; changing the return type; changing the default value passed in; no longer applying the filter on a path where it used to fire.
@@ -53,11 +53,11 @@ The plugin rewrites the billing and shipping phone stored on the order via `WC_O
 
 | Surface | Contract |
 |---|---|
-| `Shift64\SmartPhoneValidation\format_phone( string $raw, ?string $country = null, string $format = PhoneFormatter::FORMAT_E164 ): ?string` | The documented helper for other code. Signature and `null`-on-failure behavior are frozen. |
+| `Shift64\SmartPhoneValidation\format_phone( string $raw_phone, ?string $country_code = null, string $format = PhoneFormatter::FORMAT_E164 ): ?string` | The documented helper for other code. Signature, parameter names (callers may use PHP 8 named arguments) and `null`-on-failure behavior are frozen. |
 | `ValidationResult` | `is_valid()`, `get_error_code()`, `get_error_message()`, `get_phone_number()` and the `ERROR_*` constants. Error codes are strings integrations match on. |
 | `PhoneFormatter::FORMAT_*` constants | Their string values are stored in the `output_format` option. |
 
-**Breaking:** changing a method signature or return type; removing or renaming an `ERROR_*` constant or changing its string value; changing a `FORMAT_*` string value.
+**Breaking:** changing a method signature or return type; renaming a `format_phone()` parameter (a call with named arguments then fails with an `Error`); removing or renaming an `ERROR_*` constant or changing its string value; changing a `FORMAT_*` string value.
 
 **Not breaking:** adding a new `ERROR_*` constant — but note that an integration matching on codes will not know it, so new codes belong in the changelog.
 
@@ -78,6 +78,8 @@ Declared in `verify-phone-number-shift64.php` and `composer.json`: PHP 8.3+, Wor
 ## What is not protected
 
 Everything under `src/` that is not listed above: internal class structure, private and protected methods, the `Normalizer` cleanup rules, the JS in `assets/js/`, and the WooCommerce hook wiring. These may be refactored freely as long as the surfaces above and the test suite hold.
+
+The update channel is not protected either: the GitHub self-updater, removed in 1.5.0 (D05 in `.ai/specs/product-brief.md`), was never a protected surface, and updates now come only from WordPress.org.
 
 ## Reviewing a change against this file
 
