@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.4.2...v1.5.0) (2026-10-06)
+
+
+### Features
+
+* remove the GitHub updater and prepare for WordPress.org ([#36](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/36)) ([5da33d9](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/5da33d9e0ea13740067e3892b316a9e6d355d5bd))
+
 ## [1.4.2](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.4.1...v1.4.2) (2026-09-22)
 
 
