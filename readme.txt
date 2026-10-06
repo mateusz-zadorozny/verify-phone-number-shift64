@@ -44,7 +44,6 @@ Requires WooCommerce 7.2 or later, which itself needs WordPress 5.8 or later.
 In each case the customer still gets an error and the order is not placed until the number is corrected; only the extra help is missing.
 
 * WordPress 6.7 and later: on non-English sites the block checkout shows the phone errors in English and does not highlight the field ([#32](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/32)).
-* Classic checkout with a block theme such as Twenty Twenty-Five: the field is not highlighted ([#33](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/33)).
 * A classic checkout page next to a Checkout block page set as the WooCommerce checkout page: the classic page does not highlight the field ([#34](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/34)).
 
 = Privacy =

@@ -2,9 +2,18 @@
  * Phone validation field highlighting for WooCommerce classic checkout.
  *
  * Presentation only. The server adds the error with the field id
- * (array( 'id' => 'billing_phone' )), WooCommerce renders it as
- * <li data-id="billing_phone">. The field is located through that attribute,
- * never through the (translatable) message text.
+ * (array( 'id' => 'billing_phone' )) and WooCommerce renders that id as a
+ * data-id attribute on the notice. The field is located through that
+ * attribute, never through the (translatable) message text.
+ *
+ * Where the attribute sits depends on which notice templates WooCommerce uses:
+ * - classic themes: <ul class="woocommerce-error"><li data-id="billing_phone">,
+ *   one li per error;
+ * - block themes (and classic themes that opt in through the
+ *   woocommerce_use_block_notices_in_classic_theme filter): one error puts it on
+ *   the banner itself, <div class="wc-block-components-notice-banner is-error"
+ *   data-id="billing_phone">; several errors put it on <li data-id="..."> items
+ *   inside that banner, which then has no data-id of its own.
  *
  * Scrolling and inline messages are left to WooCommerce / the theme.
  *
@@ -44,11 +53,28 @@
 	}
 
 	/**
+	 * Build a selector matching an error notice for a field, in any of the
+	 * notice markups described at the top of this file.
+	 *
+	 * @param {string} fieldId Input id, e.g. 'billing_phone'.
+	 * @return {string} jQuery selector.
+	 */
+	function getErrorNoticeSelector(fieldId) {
+		var dataId = '[data-id="' + fieldId + '"]';
+
+		return [
+			'.woocommerce-error li' + dataId,
+			'.wc-block-components-notice-banner.is-error' + dataId,
+			'.wc-block-components-notice-banner.is-error li' + dataId
+		].join(', ');
+	}
+
+	/**
 	 * Highlight phone fields that have a server-side error notice.
 	 */
 	function processCheckoutErrors() {
 		$.each(PHONE_FIELDS, function(index, fieldId) {
-			if ($('.woocommerce-error li[data-id="' + fieldId + '"]').length) {
+			if ($(getErrorNoticeSelector(fieldId)).length) {
 				highlightField(fieldId);
 			}
 		});
@@ -58,7 +84,12 @@
 		// Notices rendered with the page (non-AJAX submit).
 		processCheckoutErrors();
 
-		// Notices returned by the AJAX checkout submit.
+		// Notices returned by the AJAX checkout submit. By then WooCommerce has
+		// removed the previous notices and re-validated every field, which
+		// clears a highlight left over from an earlier submit.
+		// Deliberately not bound to updated_checkout: a successful order review
+		// update leaves the old checkout notices in place, so re-reading them
+		// would highlight a number the customer has already corrected.
 		$(document.body).on('checkout_error', processCheckoutErrors);
 
 		// Clear the highlight as soon as the customer edits the number.

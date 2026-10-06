@@ -14,7 +14,7 @@ This README is the developer documentation. The WordPress.org listing text lives
 - Input normalization: spaces (including non-breaking ones pasted from documents), hyphens, dots, slashes and parentheses are stripped, a leading `00` is treated as `+` (typographic dashes such as `–` are rejected by WooCommerce's own `WC_Validation::is_phone()` before the plugin runs)
 - Two validation modes: *default country + international* or *international only* (every number must carry its country prefix, typed with `+` or `00`)
 - Output formats: E.164 (`+48600123456`), international (`+48 600 123 456`), national (`600 123 456`)
-- Highlights the offending phone field on checkout (small JS helpers, no build step; can be switched off for themes with their own error UX). Open gaps: no highlight on the classic checkout with a block theme ([#33](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/33)) or on a classic checkout page when the configured checkout page is a block one ([#34](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/34))
+- Highlights the offending phone field on checkout (small JS helpers, no build step; can be switched off for themes with their own error UX). Open gap: no highlight on a classic checkout page when the configured checkout page is a block one ([#34](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/34))
 - Translations: English and Polish; on WordPress 6.7+ block-checkout messages fall back to English on non-English sites, with or without Polylang / WPML, until [#32](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/32) is fixed (and on those sites the block checkout cannot highlight the field)
 - No external requests: validation runs on the server with the rules bundled in `vendor/`
 
@@ -155,7 +155,12 @@ if ( function_exists( 'Shift64\\SmartPhoneValidation\\format_phone' ) ) {
 }
 ```
 
-Classic checkout errors are added with the field id (`data-id="billing_phone"` / `shipping_phone` on the notice `<li>`), and every default message contains the word "phone" (pl_PL: "telefon"), so both id-based and keyword-based theme mappers can attach them to the field.
+Classic checkout errors are added with the field id, which WooCommerce prints on the notice as `data-id="billing_phone"` / `data-id="shipping_phone"`, and every default message contains the word "phone" (pl_PL: "telefon"), so both id-based and keyword-based theme mappers can attach them to the field. Where the attribute sits depends on the notice templates WooCommerce uses, and the highlighting script (`assets/js/checkout-validation.js`) handles both:
+
+- classic themes: on each `<li>` of `ul.woocommerce-error`, one per error;
+- block themes, and classic themes that opt in with the `woocommerce_use_block_notices_in_classic_theme` filter (WooCommerce 8.8+): a single error puts it on the `div.wc-block-components-notice-banner.is-error` itself; several errors put it on the `<li>` items inside that banner, which then has no `data-id` of its own.
+
+A `woocommerce/notices/error.php` override replaces these markups, so the field is highlighted only if that template keeps one of these shapes. With block notices, WooCommerce looks for the override only in the active theme's own `woocommerce/` folder (not in a parent theme or a filtered template path).
 
 Block checkout shows Store API errors in a generic banner, so the highlighting script recognises the plugin's notices by their exact text. When the script loads, `shift64_phone_validation_error_message` is applied for `missing_international_prefix` and `invalid_number` with `$context` = `block`, and those two messages per field are what the script looks for. If your filter returns a separate message for another code (for example `too_short`), the block checkout still shows it but cannot highlight the field.
 
@@ -204,9 +209,9 @@ npm run test:e2e     # Playwright against http://localhost:8888
 npm run env:stop
 ```
 
-`.wp-env.json` describes the environment (latest WordPress, PHP 8.3, latest WooCommerce, this checkout as the plugin). `tests/e2e/bin/seed.sh` runs after every `wp-env start` and is idempotent: Polish store, guest checkout, cash on delivery, flat-rate shipping, one simple product (`/product/e2e-test-product/`), the block checkout at `/checkout/` and a classic one at `/classic-checkout/`. Admin login is wp-env's default (`admin` / `password`).
+`.wp-env.json` describes the environment (latest WordPress, PHP 8.3, latest WooCommerce, this checkout as the plugin). `tests/e2e/bin/seed.sh` runs after every `wp-env start` and is idempotent: Polish store, guest checkout, cash on delivery, flat-rate shipping, one simple product (`/product/e2e-test-product/`), the block checkout at `/checkout/` (set as the WooCommerce checkout page on every run) and a classic one at `/classic-checkout/`. Admin login is wp-env's default (`admin` / `password`).
 
-Each git worktree gets its own containers; set `WP_ENV_PORT` to run several side by side (Playwright reads the same variable, `WP_BASE_URL` overrides it entirely). Tests live in `tests/e2e/*.spec.ts` with shared helpers in `tests/e2e/helpers/`; timeouts and retries belong in `playwright.config.ts`, never in a test. The `admin-*` specs log in to change plugin settings (and restore them afterwards), so the suite runs with one worker; they read `TEST_ADMIN_USER` / `TEST_ADMIN_PASSWORD` from the environment or from `.ai/qa/test-env.env`, which `sh .ai/scripts/test-env-up.sh` writes (the agent-pipeline entrypoint that wraps `wp-env start` and records the running instance in `.ai/qa/test-env.json`).
+Each git worktree gets its own containers; set `WP_ENV_PORT` to run several side by side (Playwright reads the same variable, `WP_BASE_URL` overrides it entirely). Tests live in `tests/e2e/*.spec.ts` with shared helpers in `tests/e2e/helpers/`; timeouts and retries belong in `playwright.config.ts`, never in a test. Some specs log in to change global settings and restore them afterwards: the `admin-*` specs change plugin settings, and `classic-checkout-block-theme-highlight.spec.ts` makes `/classic-checkout/` the WooCommerce checkout page (`woocommerce_checkout_page_id`) for each of its tests ([#34](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/34)). That is why the suite runs with one worker. These specs read `TEST_ADMIN_USER` / `TEST_ADMIN_PASSWORD` from the environment or from `.ai/qa/test-env.env`, which `sh .ai/scripts/test-env-up.sh` writes (the agent-pipeline entrypoint that wraps `wp-env start` and records the running instance in `.ai/qa/test-env.json`). If a run is killed before it can restore the checkout page, `npm run env:seed` (or the next `wp-env start`) sets it back to `/checkout/`.
 
 ### Continuous integration
 
