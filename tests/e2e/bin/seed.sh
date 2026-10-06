@@ -50,6 +50,20 @@ seed_instance() {
 		wp post create --post_type=page --post_status=publish --post_title='Classic Checkout' --post_name=classic-checkout --post_content='[woocommerce_checkout]' >/dev/null
 	fi
 
+	echo "seed: [$instance] WooCommerce checkout page = the Checkout block page at /checkout/"
+	# classic-checkout-block-theme-highlight.spec.ts points this option at the
+	# classic page and restores it in its teardown. A run killed before the
+	# teardown would leave the classic page configured, so reset it here.
+	# WooCommerce creates the 'checkout' page on install.
+	checkout_page_id="$(wp post list --post_type=page --post_status=publish --name=checkout --format=ids)"
+	case "$checkout_page_id" in
+		'' | *[!0-9]*)
+			echo "seed: [$instance] expected exactly one published page with the slug 'checkout', got: '$checkout_page_id'" >&2
+			exit 1
+			;;
+	esac
+	wp option update woocommerce_checkout_page_id "$checkout_page_id" >/dev/null
+
 	echo "seed: [$instance] plugin defaults"
 	wp option update shift64_phone_validation_enabled yes >/dev/null
 	wp option update shift64_phone_validation_default_country PL >/dev/null
