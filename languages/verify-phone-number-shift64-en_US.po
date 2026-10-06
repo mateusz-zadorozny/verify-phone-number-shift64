@@ -8,7 +8,7 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2024-01-28 00:00:00+00:00\n"
-"PO-Revision-Date: 2026-10-06T17:14:59+00:00\n"
+"PO-Revision-Date: 2026-10-06T22:07:48+00:00\n"
 "Language: en_US\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
@@ -37,7 +37,13 @@ msgstr ""
 msgid "https://shift64.com"
 msgstr ""
 
-#: src/Admin/DependencyChecker.php:50
+#. translators: 1: minimum WordPress version, e.g. 7.1, 2: WordPress version this site runs
+#: src/Admin/DependencyChecker.php:78
+#, php-format
+msgid "Verify Phone Number Shift64 requires WordPress %1$s or later, and this site runs WordPress %2$s. Until WordPress is updated, phone numbers are not checked at checkout."
+msgstr "Verify Phone Number Shift64 requires WordPress %1$s or later, and this site runs WordPress %2$s. Until WordPress is updated, phone numbers are not checked at checkout."
+
+#: src/Admin/DependencyChecker.php:122
 msgid "Verify Phone Number Shift64 requires WooCommerce to be installed and activated."
 msgstr "Verify Phone Number Shift64 requires WooCommerce to be installed and activated."
 
@@ -1009,6 +1015,6 @@ msgstr "Phone number is too long."
 msgid "Unable to parse phone number."
 msgstr "Unable to parse phone number."
 
-#: verify-phone-number-shift64.php:70
+#: verify-phone-number-shift64.php:72
 msgid "Verify Phone Number Shift64 cannot run because its bundled vendor folder is missing. Reinstall the plugin from WordPress.org or from the release ZIP on GitHub."
 msgstr "Verify Phone Number Shift64 cannot run because its bundled vendor folder is missing. Reinstall the plugin from WordPress.org or from the release ZIP on GitHub."

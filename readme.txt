@@ -1,7 +1,7 @@
 === Verify Phone Number Shift64 ===
 Contributors: mateuszz
 Tags: phone validation, phone number, woocommerce, checkout, validation
-Requires at least: 5.0
+Requires at least: 7.1
 Tested up to: 7.1
 Requires PHP: 8.3
 Stable tag: 1.5.1
@@ -26,10 +26,10 @@ Verify Phone Number Shift64 checks the phone numbers customers type at WooCommer
 * Three output formats: E.164 (`+48600123456`), international (`+48 600 123 456`) and national (`600 123 456`). Formatting on save can be switched off.
 * Highlights the phone field that needs correcting (see Known issues).
 * Compatible with High-Performance Order Storage (HPOS) and the Cart and Checkout blocks.
-* English and Polish error messages (see Known issues).
+* English and Polish error messages.
 * Filters for developers.
 
-Requires WooCommerce 7.2 or later, which itself needs WordPress 5.8 or later.
+Requires WordPress 7.1 or later and WooCommerce 7.2 or later.
 
 = What it does not do =
 
@@ -43,7 +43,6 @@ Requires WooCommerce 7.2 or later, which itself needs WordPress 5.8 or later.
 
 In each case the customer still gets an error and the order is not placed until the number is corrected; only the extra help is missing.
 
-* WordPress 6.7 and later: on non-English sites the block checkout shows the phone errors in English and does not highlight the field ([#32](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/32)).
 * A classic checkout page next to a Checkout block page set as the WooCommerce checkout page: the classic page does not highlight the field ([#34](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/34)).
 
 = Privacy =
@@ -151,6 +150,9 @@ It was installed from a copy of the source code (such as a ZIP of the GitHub rep
 Older releases: [full changelog on GitHub](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/blob/master/CHANGELOG.md).
 
 == Upgrade Notice ==
+
+= 2.0.0 =
+Requires WordPress 7.1 or later. Block-checkout error messages are translated again, in the store's or the shopper's language. Your settings are kept.
 
 = 1.5.0 =
 The built-in GitHub updater has been removed. Updates now come from WordPress.org through the usual Dashboard > Updates screen. Your settings are kept.

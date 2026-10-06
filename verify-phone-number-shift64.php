@@ -11,7 +11,7 @@
  * Domain Path:     /languages
  * Version:         1.5.1
  * Requires PHP:    8.3
- * Requires at least: 5.0
+ * Requires at least: 7.1
  * Requires Plugins: woocommerce
  * WC requires at least: 7.2
  * WC tested up to: 11.1
@@ -33,6 +33,8 @@ define( 'SHIFT64_PHONE_VALIDATION_VERSION', '1.5.1' );
 define( 'SHIFT64_PHONE_VALIDATION_FILE', __FILE__ );
 define( 'SHIFT64_PHONE_VALIDATION_PATH', plugin_dir_path( __FILE__ ) );
 define( 'SHIFT64_PHONE_VALIDATION_URL', plugin_dir_url( __FILE__ ) );
+// Keep equal to "Requires at least" above and in readme.txt, and to minimum_wp_version in .phpcs.xml.dist.
+define( 'SHIFT64_PHONE_VALIDATION_MIN_WP', '7.1' );
 
 // Declare compatibility with WooCommerce features. Orders are only accessed through
 // WC_Order CRUD methods, so both order storages work.
@@ -77,25 +79,35 @@ if ( file_exists( $shift64_autoloader ) ) {
 	return;
 }
 
-// Register the bundled languages/ folder for WordPress versions before 6.8, which do not
-// read Domain Path on their own. Translations from translate.wordpress.org take precedence.
-// Runs early so the strings are ready before Store API requests are handled.
+// Register the bundled languages/ folder. Since WordPress 6.7 this loads no file; translations
+// are still loaded just in time, and a language pack from translate.wordpress.org in
+// wp-content/languages/plugins still takes precedence. WordPress 7.1 registers the Domain
+// Path header itself only for plugins activated per site, so a network-activated install
+// needs this call. Plugin Check reports it as a warning that does not fail the check (accepted).
+// Priority 5, ahead of the boot below, so the folder is registered before any string of this
+// domain is translated.
 add_action(
 	'plugins_loaded',
 	function () {
-		load_plugin_textdomain(
-			'verify-phone-number-shift64',
-			false,
-			dirname( plugin_basename( __FILE__ ) ) . '/languages'
-		);
+		load_plugin_textdomain( 'verify-phone-number-shift64', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 	},
-	5 // Early priority to ensure translations are available for Store API.
+	5
 );
 
-// Check WooCommerce dependency.
+// Check the WordPress version and WooCommerce, then boot.
 add_action(
 	'plugins_loaded',
 	function () {
+		// WordPress refuses to activate, install or update the plugin below "Requires at least",
+		// but some copies skip that check: files copied outside WordPress (FTP, a deploy script,
+		// Composer), and updates through the GitHub updater of 1.4.x, which offers the latest
+		// GitHub release to any WordPress version (its offer declares "requires" 5.0).
+		// Stay inert on an unsupported version instead, and tell the administrator why.
+		if ( ! Admin\DependencyChecker::is_wordpress_supported() ) {
+			Admin\DependencyChecker::display_wordpress_unsupported_notice();
+			return;
+		}
+
 		if ( ! Admin\DependencyChecker::is_woocommerce_active() ) {
 			Admin\DependencyChecker::display_woocommerce_missing_notice();
 			return;

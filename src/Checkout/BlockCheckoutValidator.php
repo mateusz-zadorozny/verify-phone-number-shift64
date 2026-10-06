@@ -168,6 +168,14 @@ class BlockCheckoutValidator {
 	 * Store API requests are REST requests: multilingual plugins often do not set the
 	 * language there, so the locale is resolved explicitly and restored afterwards.
 	 *
+	 * Switching is all it takes: after switch_to_locale() and restore_previous_locale()
+	 * WordPress loads this plugin's translations for the active locale just in time, from
+	 * a language pack in wp-content/languages/plugins when one exists for that locale and
+	 * from the bundled languages/ folder (the Domain Path header) otherwise. The text
+	 * domain is never unloaded by hand: a plain unload_textdomain() blocks just-in-time
+	 * loading for the rest of the request, which since WordPress 6.7 left every message
+	 * in English (#32).
+	 *
 	 * @param string|null $error_code One of the ValidationResult::ERROR_* constants.
 	 * @param string      $field      ErrorMessages::FIELD_BILLING or ErrorMessages::FIELD_SHIPPING.
 	 * @return string The translated message.
@@ -176,30 +184,13 @@ class BlockCheckoutValidator {
 		$locale   = self::get_current_locale();
 		$switched = get_locale() !== $locale && switch_to_locale( $locale );
 
-		self::reload_textdomain();
 		$message = ErrorMessages::for_block_checkout( $error_code, $field );
 
 		if ( $switched ) {
 			restore_previous_locale();
-			self::reload_textdomain();
 		}
 
 		return $message;
-	}
-
-	/**
-	 * Reload plugin translations for the locale that is active right now.
-	 *
-	 * @return void
-	 */
-	private static function reload_textdomain(): void {
-		unload_textdomain( 'verify-phone-number-shift64' );
-
-		load_plugin_textdomain(
-			'verify-phone-number-shift64',
-			false,
-			dirname( plugin_basename( SHIFT64_PHONE_VALIDATION_FILE ) ) . '/languages'
-		);
 	}
 
 	/**
