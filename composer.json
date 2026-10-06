@@ -19,16 +19,15 @@
     "autoload": {
         "psr-4": {
             "Shift64\\SmartPhoneValidation\\": "src/"
-        },
-        "files": [
-            "src/functions.php"
-        ]
+        }
     },
     "scripts": {
         "phpcs": "phpcs",
         "phpcbf": "phpcbf",
         "test": "phpunit",
-        "makepot": "wp i18n make-pot ."
+        "makepot": "wp i18n make-pot . languages/verify-phone-number-shift64.pot --slug=verify-phone-number-shift64",
+        "makepo": "wp i18n update-po languages/verify-phone-number-shift64.pot languages/",
+        "makemo": "wp i18n make-mo languages/"
     },
     "config": {
         "allow-plugins": {

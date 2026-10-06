@@ -13,6 +13,11 @@ use Shift64\SmartPhoneValidation\Admin\Settings;
 use Shift64\SmartPhoneValidation\Validation\Normalizer;
 use WP_REST_Request;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Collapses Unicode whitespace in posted phone numbers before WooCommerce validates them.
  *
@@ -88,7 +93,9 @@ class WhitespaceFilter {
 			return $result;
 		}
 
-		if ( ! str_starts_with( (string) $request->get_route(), self::STORE_API_ROUTE_PREFIX ) || ! Settings::is_validation_enabled() ) {
+		// Starts-with check via strpos(): Plugin Check flags str_starts_with() against "Requires at least: 5.0"
+		// (WordPress polyfills it only since 5.9), even though PHP 8.3 has it natively.
+		if ( 0 !== strpos( (string) $request->get_route(), self::STORE_API_ROUTE_PREFIX ) || ! Settings::is_validation_enabled() ) {
 			return $result;
 		}
 

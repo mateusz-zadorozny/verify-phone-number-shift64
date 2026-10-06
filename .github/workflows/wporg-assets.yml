@@ -1,0 +1,107 @@
+name: WordPress.org readme and assets
+
+# Pushes readme.txt and .wordpress-org/ to WordPress.org without a code release, e.g. a new
+# "Tested up to", FAQ wording or screenshots merged with a docs: commit.
+# Runs AFTER the Release workflow has finished, never in parallel with it: a push-triggered run
+# would copy the pre-release readme.txt (old "Stable tag") over the trunk readme that the release
+# deploy just committed. workflow_run checks out the latest master, i.e. after the release commit.
+on:
+  workflow_run:
+    workflows:
+      - Release
+    types:
+      - completed
+    branches:
+      - master
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+# Deliberately NOT the "release" group: GitHub keeps one pending run per group and cancels the
+# older one, so a run queued here could silently cancel a Release run waiting for its turn.
+# Overlap with a running release is avoided by the "Release still running" step instead.
+concurrency:
+  group: wporg-assets
+  cancel-in-progress: false
+
+jobs:
+  readme-assets:
+    name: Sync readme.txt and .wordpress-org
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check WordPress.org credentials
+        id: wporg
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+        run: |
+          if [ -n "${SVN_USERNAME}" ] && [ -n "${SVN_PASSWORD}" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=WordPress.org sync skipped::SVN_USERNAME / SVN_PASSWORD are not set."
+          fi
+
+      # A Release run that is still queued or running may deploy a newer version; syncing now
+      # could put an older readme.txt (older Stable tag) on trunk. Its completion starts this
+      # workflow again, so skipping loses nothing.
+      - name: Release still running
+        id: idle
+        if: steps.wporg.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TRIGGER_RUN_ID: ${{ github.event.workflow_run.id || 0 }}
+        run: |
+          set -euo pipefail
+          active="$(gh run list --workflow release.yml --limit 20 --json databaseId,status \
+            --jq "[.[] | select(.status != \"completed\" and .databaseId != ${TRIGGER_RUN_ID})] | length")"
+          if [ "${active}" -eq 0 ]; then
+            echo "idle=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "idle=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=WordPress.org sync postponed::A Release run is queued or running; this workflow runs again when it completes."
+          fi
+
+      - name: Checkout master
+        if: steps.idle.outputs.idle == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          persist-credentials: false
+
+      # The action copies readme.txt to trunk even when tags/<Stable tag> is missing, which
+      # would leave trunk pointing at a version SVN does not have (e.g. after approval, before
+      # the first wporg-deploy.yml run). Sync only once that tag exists.
+      - name: Stable tag exists in SVN
+        id: svn
+        if: steps.idle.outputs.idle == 'true'
+        run: |
+          set -euo pipefail
+          stable="$(sed -n 's/^Stable tag:[[:space:]]*\([^[:space:]]*\).*/\1/p' readme.txt | head -n 1)"
+          if [ -n "${stable}" ] && curl -fsS --retry 3 -o /dev/null \
+            "https://plugins.svn.wordpress.org/verify-phone-number-shift64/tags/${stable}/readme.txt"; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=WordPress.org sync skipped::tags/${stable} is not in SVN yet; run wporg-deploy.yml first."
+          fi
+
+      # Only readme.txt (to trunk and to tags/<Stable tag>) and .wordpress-org/ (to /assets).
+      # Code reaches WordPress.org only through a release. Exits 0 without a commit when SVN
+      # already matches, e.g. right after a release deploy.
+      - name: Push readme.txt and assets to WordPress.org
+        if: steps.svn.outputs.ready == 'true'
+        uses: 10up/action-wordpress-plugin-asset-update@2480306f6f693672726d08b5917ea114cb2825f7 # 2.2.0
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: verify-phone-number-shift64
+          README_NAME: readme.txt
+          IGNORE_OTHER_FILES: true
+          ASSETS_DIR: .wordpress-org
+          # The action rsyncs ASSETS_DIR unconditionally and fails if it does not exist.
+          SKIP_ASSETS: ${{ hashFiles('.wordpress-org/**') == '' }}

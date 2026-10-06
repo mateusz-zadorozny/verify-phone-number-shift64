@@ -1,6 +1,6 @@
 # WordPress Plugin CI/CD Setup Guide
 
-Complete guide for implementing automated releases, code quality checks, and GitHub-based auto-updates for WordPress plugins.
+Complete guide for implementing automated releases, code quality checks, and WordPress.org deployment for WordPress plugins.
 
 ## Table of Contents
 
@@ -12,11 +12,10 @@ Complete guide for implementing automated releases, code quality checks, and Git
 6. [Step 3: Version Update Script](#step-3-version-update-script)
 7. [Step 4: GitHub Workflows](#step-4-github-workflows)
 8. [Step 5: PHPCS Configuration](#step-5-phpcs-configuration)
-9. [Step 6: GitHub Updater Class](#step-6-github-updater-class)
-10. [Step 7: Integration](#step-7-integration)
-11. [Usage](#usage)
-12. [Private Repositories](#private-repositories)
-13. [Troubleshooting](#troubleshooting)
+9. [Step 6: WordPress.org Deployment](#step-6-wordpressorg-deployment)
+10. [Usage](#usage)
+11. [Private Composer Dependencies](#private-composer-dependencies)
+12. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -27,7 +26,9 @@ This setup provides:
 - **Automated Releases**: Semantic versioning based on commit messages
 - **Code Quality**: PHPCS with WordPress Coding Standards on every PR
 - **PR Validation**: Enforces conventional commit format in PR titles
-- **Auto-Updates**: Plugin updates itself from GitHub releases (like wordpress.org plugins)
+- **One Release Package**: a single ZIP built from `.distignore`, attached to the GitHub release and deployed to WordPress.org
+- **WordPress.org Deployment**: each release goes to the plugin's WordPress.org SVN repository, which serves the updates; the plugin has no updater of its own
+- **Plugin Check**: every PR builds the package and runs Plugin Check on it
 
 ### How It Works
 
@@ -35,7 +36,7 @@ This setup provides:
 PR with "feat: add feature" title
         ↓
 [PR Lint] Validates title format
-[Code Quality] Runs PHPCS checks
+[Code Quality] Runs PHPCS checks, builds the package, runs Plugin Check
         ↓
 Merge to master
         ↓
@@ -43,11 +44,12 @@ Merge to master
   → Analyzes commits
   → Bumps version (feat=minor, fix=patch)
   → Updates version in plugin files
-  → Creates GitHub release with zip
+  → Creates GitHub release
+  → Builds one package (scripts/build-package.sh)
+  → Attaches it to the GitHub release as a zip
+  → Deploys the same package to WordPress.org SVN (once the SVN secrets exist)
         ↓
-WordPress sites detect update via GitHubUpdater
-        ↓
-One-click update in WP Admin
+WordPress sites are offered the update by WordPress.org
 ```
 
 ---
@@ -58,6 +60,7 @@ One-click update in WP Admin
 - Node.js 18+ (for semantic-release)
 - PHP 7.4+ with Composer
 - Git
+- A WordPress.org account, for the directory submission and the SVN deploys
 
 ---
 
@@ -67,14 +70,19 @@ One-click update in WP Admin
 your-plugin/
 ├── .github/
 │   └── workflows/
-│       ├── release.yml          # Automated releases
-│       ├── code-quality.yml     # PHPCS checks
+│       ├── release.yml          # Automated releases + WordPress.org deploy
+│       ├── wporg-deploy.yml     # Manual rebuild of a tag: SVN deploy, release ZIP
+│       ├── wporg-assets.yml     # readme.txt + listing assets sync
+│       ├── code-quality.yml     # PHPCS, PHPUnit, package Plugin Check
+│       ├── e2e.yml              # Playwright checkout tests (wp-env)
 │       └── pr-lint.yml          # PR title validation
+├── .wordpress-org/              # Directory icons, banners, screenshots
 ├── scripts/
-│   └── update-version.sh        # Version bump script
-├── src/
-│   └── Admin/
-│       └── GitHubUpdater.php    # Auto-update functionality
+│   ├── update-version.sh        # Version bump script
+│   ├── sync-readme-changelog.php  # readme.txt changelog from CHANGELOG.md
+│   └── build-package.sh         # Builds the release package
+├── src/                         # Plugin code (no updater)
+├── .distignore                  # What stays out of the package
 ├── .phpcs.xml.dist              # PHPCS configuration
 ├── .releaserc.json              # Semantic release config
 ├── composer.json
@@ -219,6 +227,9 @@ This configures semantic-release for automated versioning.
 | `build:`    | No release | `build: update dependencies` |
 | `ci:`       | No release | `ci: fix workflow` |
 | `chore:`    | No release | `chore: cleanup files` |
+| `BREAKING CHANGE:` footer | Major (1.0.0 → 2.0.0) | `feat: drop PHP 8.2` with `BREAKING CHANGE: requires PHP 8.3` in the commit body |
+
+With the default angular preset, the `!` shorthand (`feat!: ...`) is not parsed and cuts **no release at all**; only the `BREAKING CHANGE:` footer produces a major. Because PRs are squash-merged, the footer has to be in the squash commit message.
 
 ---
 
@@ -266,6 +277,8 @@ grep "Stable tag:" readme.txt
 - Replace `your-plugin.php` with your main plugin filename
 - Replace `YOUR_PLUGIN_VERSION` with your version constant name
 - Adjust spacing in sed commands to match your file format
+
+In this repository the script also runs `scripts/sync-readme-changelog.php`, which prepends the new version from `CHANGELOG.md` to the `== Changelog ==` section of `readme.txt` (the changelog WordPress.org shows). It never rewrites existing entries, and it trims the section to the 10 most recent versions: older ones, hand-written ones included, are dropped and covered by the "Older releases" link (the 1.5.0 release drops 1.2.0). `@semantic-release/changelog` runs before `@semantic-release/exec`, so `CHANGELOG.md` already contains the new release when the script reads it.
 
 **Make it executable:**
 ```bash
@@ -349,45 +362,12 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Build zip artifact only if a new release was created
-      - name: Build release artifact
+      # Build the package only if a new release was created.
+      # .distignore decides what ships; the script checks the result
+      # and writes dist/your-plugin-slug.zip.
+      - name: Build release package
         if: steps.semantic.outputs.new_release_published == 'true'
-        run: |
-          # Create dist directory
-          mkdir -p dist
-
-          # Copy plugin files, excluding development files
-          # IMPORTANT: Adjust exclusions for your project structure
-          rsync -av --progress . dist/your-plugin-slug/ \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='.circleci' \
-            --exclude='.claude' \
-            --exclude='node_modules' \
-            --exclude='dist' \
-            --exclude='tests' \
-            --exclude='bin' \
-            --exclude='*.zip' \
-            --exclude='*.tar.gz' \
-            --exclude='.git*' \
-            --exclude='.editorconfig' \
-            --exclude='.phpcs.xml.dist' \
-            --exclude='.distignore' \
-            --exclude='phpunit.xml.dist' \
-            --exclude='composer.json' \
-            --exclude='composer.lock' \
-            --exclude='package.json' \
-            --exclude='package-lock.json' \
-            --exclude='.releaserc.json' \
-            --exclude='CHANGELOG.md' \
-            --exclude='docs'
-
-          # Create zip with plugin slug as folder name
-          cd dist
-          zip -r your-plugin-slug.zip your-plugin-slug
-
-          echo "Release artifact created: dist/your-plugin-slug.zip"
-          echo "Version: ${{ steps.semantic.outputs.new_release_version }}"
+        run: ./scripts/build-package.sh dist
 
       # Upload zip to GitHub release
       - name: Upload artifact to release
@@ -401,9 +381,11 @@ jobs:
 ```
 
 **Customization:**
-- Replace `your-plugin-slug` (3 occurrences) with your plugin directory name
+- Replace `your-plugin-slug` with your plugin directory name
 - Change `master` to `main` if needed
-- Add/remove `--exclude` patterns as needed
+- Edit `.distignore`, not the workflow, to change what ships
+
+This is the minimal shape. This repository's `.github/workflows/release.yml` adds two guard steps and the WordPress.org deploy described in [Step 6](#step-6-wordpressorg-deployment). "Validate plugin package" builds and checks the package before semantic-release runs, so a broken package stops the run before anything is tagged. "Verify workspace is the release commit" checks that the checked-out `HEAD` is the new tag and carries the new version before "Build plugin package" runs. That second guard runs **after** semantic-release has pushed the tag and published the GitHub release, so when it fails the release already exists, without `verify-phone-number-shift64.zip`. Fix the cause (for example a file `update-version.sh` changes that is missing from the `@semantic-release/git` assets in `.releaserc.json`), then run `wporg-deploy.yml` for that tag with `upload-zip` on to attach the ZIP (see [Troubleshooting](#zip-not-found-in-release)).
 
 ### .github/workflows/code-quality.yml
 
@@ -462,6 +444,13 @@ jobs:
         if: always()
         run: cs2pr ./phpcs-report.xml
 ```
+
+This repository's `code-quality.yml` also has two more jobs:
+
+- `phpunit` runs `composer test` on PHP 8.3, 8.4 and 8.5. The step runs in bash with `pipefail`, so a failing PHPUnit fails the step even though its output is piped through `tee`, and it also requires PHPUnit's summary line (`OK (...)`, or `OK, but ...` when tests were skipped or incomplete). A run that exits 0 without printing a result, for example when a file's `ABSPATH` guard runs before `tests/Unit/bootstrap.php` has defined `ABSPATH`, therefore fails instead of looking green.
+- `package` builds the release package and runs Plugin Check on it; see [Step 6](#step-6-wordpressorg-deployment).
+
+`e2e.yml` runs the Playwright checkout tests in wp-env with WooCommerce on every PR, every push to `master`, weekly and on demand. It writes the WordPress and WooCommerce versions it ran against to the job summary, so a new release of either is noticed before `Tested up to` (`readme.txt`) or `WC tested up to` (plugin header) falls behind. The WooCommerce version is read from the `WC_VERSION` constant, because wp-env installs WooCommerce from `woocommerce.latest-stable.zip` into a folder of that name, where `wp plugin get woocommerce` finds nothing.
 
 ### .github/workflows/pr-lint.yml
 
@@ -598,492 +587,72 @@ jobs:
 
 ---
 
-## Step 6: GitHub Updater Class
-
-### src/Admin/GitHubUpdater.php
-
-```php
-<?php
-/**
- * GitHub-based auto-updater for the plugin.
- *
- * This class integrates with WordPress plugin update system to check
- * for updates from GitHub releases and enable one-click updates.
- *
- * @package YourVendor\YourPlugin\Admin
- */
-
-declare(strict_types=1);
-
-namespace YourVendor\YourPlugin\Admin;
-
-/**
- * Handles plugin updates from GitHub releases.
- *
- * How it works:
- * 1. Hooks into WordPress update check (pre_set_site_transient_update_plugins)
- * 2. Fetches latest release from GitHub API
- * 3. Compares versions and injects update info if newer version exists
- * 4. WordPress handles the actual update process
- *
- * Requirements:
- * - GitHub releases must have a zip asset named "{plugin-slug}.zip"
- * - Release tags should be semver format: v1.0.0 or 1.0.0
- */
-class GitHubUpdater {
-
-    /**
-     * GitHub repository owner (username or organization).
-     *
-     * @var string
-     */
-    const GITHUB_OWNER = 'YOUR_GITHUB_USERNAME';
-
-    /**
-     * GitHub repository name.
-     *
-     * @var string
-     */
-    const GITHUB_REPO = 'your-plugin-slug';
-
-    /**
-     * Plugin slug (must match the plugin directory name).
-     *
-     * @var string
-     */
-    const PLUGIN_SLUG = 'your-plugin-slug';
-
-    /**
-     * Transient key for caching release info.
-     * Use a unique key to avoid conflicts with other plugins.
-     *
-     * @var string
-     */
-    const TRANSIENT_KEY = 'yourprefix_github_release';
-
-    /**
-     * Cache duration in seconds (12 hours).
-     * Reduces API calls to stay within GitHub rate limits.
-     *
-     * @var int
-     */
-    const CACHE_DURATION = 43200;
-
-    /**
-     * Error cache duration in seconds (1 hour).
-     * Shorter duration so failed checks retry sooner.
-     *
-     * @var int
-     */
-    const ERROR_CACHE_DURATION = 3600;
-
-    /**
-     * Initialize updater hooks.
-     *
-     * Call this method from your plugin's main file during initialization.
-     * Example: GitHubUpdater::init();
-     *
-     * @return void
-     */
-    public static function init(): void {
-        // Hook into WordPress update check
-        add_filter( 'pre_set_site_transient_update_plugins', array( self::class, 'check_for_update' ) );
-
-        // Provide plugin info for "View details" modal
-        add_filter( 'plugins_api', array( self::class, 'plugin_info' ), 10, 3 );
-
-        // Fix GitHub's folder naming after extraction
-        add_filter( 'upgrader_source_selection', array( self::class, 'fix_source_dir' ), 10, 4 );
-
-        // Clear cache after update completes
-        add_action( 'upgrader_process_complete', array( self::class, 'clear_cache' ), 10, 0 );
-    }
-
-    /**
-     * Check for plugin updates from GitHub.
-     *
-     * This method is called by WordPress when checking for plugin updates.
-     * If a newer version is available on GitHub, it adds the update info
-     * to the transient so WordPress displays the update notice.
-     *
-     * @param object $transient The update_plugins transient value.
-     * @return object Modified transient with our update info.
-     */
-    public static function check_for_update( $transient ) {
-        // Don't check if WordPress hasn't checked installed versions yet
-        if ( empty( $transient->checked ) ) {
-            return $transient;
-        }
-
-        // Get release info from GitHub (cached)
-        $release_info = self::get_release_info();
-        if ( null === $release_info ) {
-            return $transient;
-        }
-
-        // Extract version number (removes 'v' prefix if present)
-        $new_version = self::normalize_version( $release_info['tag_name'] );
-
-        // Plugin file path relative to plugins directory
-        // Format: "plugin-slug/plugin-slug.php"
-        $plugin_file = self::PLUGIN_SLUG . '/' . self::PLUGIN_SLUG . '.php';
-
-        // Check if new version is actually newer
-        if ( ! self::is_update_available( $new_version ) ) {
-            return $transient;
-        }
-
-        // Get download URL for the zip asset
-        $download_url = self::get_download_url( $release_info );
-        if ( null === $download_url ) {
-            return $transient;
-        }
-
-        // Add update info to transient
-        // WordPress will display "There is a new version available"
-        $transient->response[ $plugin_file ] = (object) array(
-            'slug'         => self::PLUGIN_SLUG,
-            'plugin'       => $plugin_file,
-            'new_version'  => $new_version,
-            'url'          => $release_info['html_url'],  // Link to GitHub release
-            'package'      => $download_url,               // Zip download URL
-            'icons'        => array(),
-            'banners'      => array(),
-            'tested'       => '',
-            'requires'     => '5.0',      // Minimum WordPress version
-            'requires_php' => '7.4',      // Minimum PHP version
-        );
-
-        return $transient;
-    }
-
-    /**
-     * Provide plugin information for the "View details" modal.
-     *
-     * When users click "View details" on the plugins page, WordPress
-     * calls this filter. We return plugin info from GitHub release.
-     *
-     * @param false|object|array $result The result object or array.
-     * @param string             $action The type of information being requested.
-     * @param object             $args   Plugin API arguments.
-     * @return false|object Plugin information or false if not our plugin.
-     */
-    public static function plugin_info( $result, $action, $args ) {
-        // Only handle plugin_information requests
-        if ( 'plugin_information' !== $action ) {
-            return $result;
-        }
-
-        // Only handle requests for our plugin
-        if ( ! isset( $args->slug ) || self::PLUGIN_SLUG !== $args->slug ) {
-            return $result;
-        }
-
-        $release_info = self::get_release_info();
-        if ( null === $release_info ) {
-            return $result;
-        }
-
-        $new_version  = self::normalize_version( $release_info['tag_name'] );
-        $download_url = self::get_download_url( $release_info );
-
-        // Return plugin info object
-        // This data populates the "View details" modal
-        return (object) array(
-            'name'           => 'Your Plugin Name',  // Display name
-            'slug'           => self::PLUGIN_SLUG,
-            'version'        => $new_version,
-            'author'         => '<a href="https://yourwebsite.com">Your Name</a>',
-            'author_profile' => 'https://yourwebsite.com',
-            'homepage'       => 'https://yourwebsite.com/plugins/your-plugin',
-            'download_link'  => $download_url,
-            'requires'       => '5.0',
-            'tested'         => '',  // WordPress version tested up to
-            'requires_php'   => '7.4',
-            'sections'       => array(
-                'description' => 'Your plugin description.',
-                'changelog'   => self::format_changelog( $release_info['body'] ?? '' ),
-            ),
-            'banners'        => array(),
-        );
-    }
-
-    /**
-     * Fix the extracted folder name from GitHub releases.
-     *
-     * Problem: GitHub extracts zips into folders named "repo-version" or
-     * with a hash, but WordPress expects the folder to match the plugin slug.
-     *
-     * Solution: Rename the extracted folder to match our plugin slug.
-     *
-     * @param string       $source        File source location.
-     * @param string       $remote_source Remote file source location.
-     * @param \WP_Upgrader $upgrader      WP_Upgrader instance.
-     * @param array        $hook_extra    Extra arguments passed to hooked filters.
-     * @return string|\WP_Error Corrected source path or WP_Error on failure.
-     */
-    public static function fix_source_dir( $source, $remote_source, $upgrader, $hook_extra ) {
-        global $wp_filesystem;
-
-        // Only process plugin updates (not themes, etc.)
-        if ( ! isset( $hook_extra['plugin'] ) ) {
-            return $source;
-        }
-
-        // Only process our plugin
-        $plugin_file = self::PLUGIN_SLUG . '/' . self::PLUGIN_SLUG . '.php';
-        if ( $hook_extra['plugin'] !== $plugin_file ) {
-            return $source;
-        }
-
-        // Check if source directory already has correct name
-        $source_base = basename( $source );
-        if ( self::PLUGIN_SLUG === $source_base ) {
-            return $source;
-        }
-
-        // Rename to expected plugin slug
-        $corrected_source = trailingslashit( $remote_source ) . self::PLUGIN_SLUG . '/';
-        if ( $wp_filesystem->move( $source, $corrected_source ) ) {
-            return $corrected_source;
-        }
-
-        return new \WP_Error(
-            'rename_failed',
-            __( 'Failed to rename plugin directory.', 'your-text-domain' )
-        );
-    }
-
-    /**
-     * Get release info from GitHub (cached).
-     *
-     * Uses WordPress transients to cache the response and reduce API calls.
-     * GitHub API has rate limits: 60 requests/hour for unauthenticated requests.
-     *
-     * @return array|null Release data or null on failure.
-     */
-    public static function get_release_info(): ?array {
-        $cached = get_transient( self::TRANSIENT_KEY );
-
-        // Return cached data if available
-        if ( false !== $cached ) {
-            // 'error' is cached on API failures
-            if ( 'error' === $cached ) {
-                return null;
-            }
-            return $cached;
-        }
-
-        // Fetch fresh data from GitHub
-        $release_info = self::fetch_github_release();
-
-        if ( null === $release_info ) {
-            // Cache error state for shorter duration
-            // This prevents hammering the API on failures
-            set_transient( self::TRANSIENT_KEY, 'error', self::ERROR_CACHE_DURATION );
-            return null;
-        }
-
-        // Cache successful response
-        set_transient( self::TRANSIENT_KEY, $release_info, self::CACHE_DURATION );
-
-        return $release_info;
-    }
-
-    /**
-     * Fetch latest release data from GitHub API.
-     *
-     * Uses the /releases/latest endpoint which returns the most recent
-     * non-prerelease, non-draft release.
-     *
-     * @return array|null Release data or null on failure.
-     */
-    private static function fetch_github_release(): ?array {
-        $api_url = sprintf(
-            'https://api.github.com/repos/%s/%s/releases/latest',
-            self::GITHUB_OWNER,
-            self::GITHUB_REPO
-        );
-
-        // Make API request with proper headers
-        $response = wp_safe_remote_get(
-            $api_url,
-            array(
-                'timeout' => 10,
-                'headers' => array(
-                    // Required for GitHub API v3
-                    'Accept'     => 'application/vnd.github.v3+json',
-                    // User-Agent is required by GitHub API
-                    'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ) . '; ' . home_url(),
-                ),
-            )
-        );
-
-        // Check for request errors
-        if ( is_wp_error( $response ) ) {
-            return null;
-        }
-
-        // Check for successful response
-        $response_code = wp_remote_retrieve_response_code( $response );
-        if ( 200 !== $response_code ) {
-            return null;
-        }
-
-        // Parse JSON response
-        $body = wp_remote_retrieve_body( $response );
-        $data = json_decode( $body, true );
-
-        // Validate response has required data
-        if ( ! is_array( $data ) || empty( $data['tag_name'] ) ) {
-            return null;
-        }
-
-        return $data;
-    }
-
-    /**
-     * Extract download URL from release assets.
-     *
-     * Looks for a zip file named "{plugin-slug}.zip" in the release assets.
-     * This is the distribution zip uploaded by the release workflow.
-     *
-     * @param array $release_info GitHub release data.
-     * @return string|null Download URL or null if not found.
-     */
-    private static function get_download_url( array $release_info ): ?string {
-        // Expected asset name: "your-plugin-slug.zip"
-        $expected_asset = self::PLUGIN_SLUG . '.zip';
-
-        if ( empty( $release_info['assets'] ) || ! is_array( $release_info['assets'] ) ) {
-            return null;
-        }
-
-        // Search for our zip file in release assets
-        foreach ( $release_info['assets'] as $asset ) {
-            if ( isset( $asset['name'] ) && $expected_asset === $asset['name'] ) {
-                return $asset['browser_download_url'] ?? null;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Normalize version string by removing 'v' prefix.
-     *
-     * GitHub tags often use 'v' prefix (v1.0.0) but WordPress expects
-     * plain version numbers (1.0.0).
-     *
-     * @param string $version Version string (e.g., "v1.0.2").
-     * @return string Normalized version (e.g., "1.0.2").
-     */
-    private static function normalize_version( string $version ): string {
-        return ltrim( $version, 'vV' );
-    }
-
-    /**
-     * Check if an update is available.
-     *
-     * Compares the GitHub version with currently installed version.
-     *
-     * @param string $new_version The new version from GitHub.
-     * @return bool True if update is available.
-     */
-    private static function is_update_available( string $new_version ): bool {
-        // YOUR_PLUGIN_VERSION should be a constant defined in your main plugin file
-        $current_version = YOUR_PLUGIN_VERSION;
-        return version_compare( $new_version, $current_version, '>' );
-    }
-
-    /**
-     * Format changelog text from GitHub release body.
-     *
-     * Converts basic markdown to HTML for display in WordPress.
-     *
-     * @param string $body GitHub release body (markdown).
-     * @return string Formatted changelog HTML.
-     */
-    private static function format_changelog( string $body ): string {
-        if ( empty( $body ) ) {
-            return '<p>' . __( 'No changelog available.', 'your-text-domain' ) . '</p>';
-        }
-
-        // Basic markdown to HTML conversion
-        $changelog = esc_html( $body );
-        $changelog = nl2br( $changelog );
-
-        // Convert markdown headers
-        $changelog = preg_replace( '/^### (.+)$/m', '<h4>$1</h4>', $changelog );
-        $changelog = preg_replace( '/^## (.+)$/m', '<h3>$1</h3>', $changelog );
-
-        // Convert markdown lists
-        $changelog = preg_replace( '/^\* (.+)$/m', '<li>$1</li>', $changelog );
-        $changelog = preg_replace( '/^- (.+)$/m', '<li>$1</li>', $changelog );
-
-        return $changelog;
-    }
-
-    /**
-     * Clear the cached release info.
-     *
-     * Called after successful update and on plugin deactivation.
-     * Forces fresh check on next update check.
-     *
-     * @return void
-     */
-    public static function clear_cache(): void {
-        delete_transient( self::TRANSIENT_KEY );
-    }
-}
-```
-
-**Customization (search and replace):**
-- `YOUR_GITHUB_USERNAME` → Your GitHub username
-- `your-plugin-slug` → Your plugin directory name (3 occurrences)
-- `yourprefix_github_release` → Unique transient key
-- `YourVendor\YourPlugin` → Your namespace
-- `Your Plugin Name` → Your plugin display name
-- `your-text-domain` → Your text domain
-- `YOUR_PLUGIN_VERSION` → Your version constant name
-- Update author info and URLs
-
----
-
-## Step 7: Integration
-
-### Main Plugin File
-
-Add this to your main plugin file to initialize the updater:
-
-```php
-<?php
-/**
- * Plugin Name: Your Plugin Name
- * Version:     1.0.0
- */
-
-// Define version constant (used by GitHubUpdater)
-define( 'YOUR_PLUGIN_VERSION', '1.0.0' );
-
-// Load autoloader
-require_once __DIR__ . '/vendor/autoload.php';
-
-// Initialize GitHub updater
-add_action( 'plugins_loaded', function() {
-    \YourVendor\YourPlugin\Admin\GitHubUpdater::init();
-});
-```
-
-### Deactivation Hook (Optional)
-
-Clear update cache on deactivation:
-
-```php
-register_deactivation_hook( __FILE__, function() {
-    \YourVendor\YourPlugin\Admin\GitHubUpdater::clear_cache();
-});
-```
+## Step 6: WordPress.org Deployment
+
+The plugin is distributed through the WordPress.org plugin directory, and WordPress.org also serves its updates. Every release ships **one package**: the ZIP attached to the GitHub release and the files committed to WordPress.org SVN come from the same built folder. This step uses this repository's names; replace `verify-phone-number-shift64` with your slug when reusing it.
+
+### No self-updater (Guideline 8)
+
+[Detailed Plugin Guideline 8](https://developer.wordpress.org/plugins/wordpress-org/detailed-plugin-guidelines/) does not allow a directory plugin to serve updates "from servers other than WordPress.org's", and Plugin Check reports an update checker as an error (`plugin_updater_detected`). This plugin therefore has no updater of its own and makes no outgoing HTTP requests (D05 in `.ai/specs/product-brief.md`). Do not add one: no update-checker library, no `wp_remote_*` call, no hook on `pre_set_site_transient_update_plugins`, `plugins_api` or `upgrader_*`.
+
+### What ships: `.distignore` and `scripts/build-package.sh`
+
+- **`.distignore`** is the single source of truth for what stays out of the package: development and process docs, `docs/`, `scripts/`, `tests/`, `bin/`, tool configs, `package*.json`, `composer.lock`, `node_modules/`, and every hidden file or folder (`.ai/`, `.claude/`, `.github/`, `.wordpress-org/`, `.wp-env.json`, ...). It never excludes `vendor/` or `composer.json`: the plugin cannot run without the production `vendor/`, and Plugin Check warns when `vendor/` ships without `composer.json`. Anything new at the repository root that is not runtime code goes in `.distignore`.
+- **`scripts/build-package.sh <out-dir>`** needs a production `vendor/` first (`composer install --no-dev --optimize-autoloader`) and refuses a dev one. It copies the plugin with `rsync --exclude-from=.distignore` to `<out-dir>/verify-phone-number-shift64/`, checks the result (main file, `readme.txt`, `LICENSE`, `composer.json` and `vendor/autoload.php` present; `Stable tag` equal to the header `Version`; no hidden files, shell scripts, `.phar`/`.dist` files or archives; no stray Markdown at the root) and zips it to `<out-dir>/verify-phone-number-shift64.zip`, failing above the 10 MB submission limit. `<out-dir>` must be outside the plugin folder or under `dist/`.
+- The WordPress.org deploy passes the built folder to the deploy action as `BUILD_DIR`. With `BUILD_DIR` set, the action ignores `.distignore` and `.gitattributes` and commits the folder as it is, which is why the build script, not the action, decides what ships.
+
+### Workflows
+
+| Workflow | Runs | What it does |
+|---|---|---|
+| `release.yml` | on every push to `master` | Builds and checks the package before releasing, runs semantic-release (which pushes the tag and publishes the GitHub release), verifies that `HEAD` is the new tag, builds the package, uploads `verify-phone-number-shift64.zip` to the GitHub release, then deploys the same folder to SVN with [`10up/action-wordpress-plugin-deploy`](https://github.com/10up/action-wordpress-plugin-deploy) (`BUILD_DIR`, `VERSION`), in one SVN commit to `trunk/`, `tags/<version>/` and `assets/`. The SVN step runs only when the SVN secrets exist; otherwise it is skipped with a notice and the job stays green. A failure after semantic-release leaves a published release without the ZIP; see [Zip not found in release](#zip-not-found-in-release). |
+| `wporg-deploy.yml` | manually (`workflow_dispatch`): input `tag` (for example `v1.5.0`) and the switches `allow-older` (default off), `upload-zip` (default on) and `svn` (default on) | Checks out that tag, installs production dependencies, verifies the tag carries that version and builds the package. With `upload-zip` on it re-attaches `verify-phone-number-shift64.zip` to that tag's GitHub release, the asset 1.4.x updaters download; with `svn` on it deploys the package to SVN. With `svn` on, a check that runs before anything is built fails the run when the SVN secrets are missing, or when the tag is not the latest GitHub release and `allow-older` is off: an older tag would overwrite SVN `trunk/` with older code and move `Stable tag` back, so WordPress.org would serve the older version, and deploying the newer tag again cannot repair that because its SVN tag already exists. With `svn` off neither check runs, so attaching a ZIP needs no SVN secrets and works for any tag. Used for the first deploy after approval, to retry a failed deploy of the latest release, and to attach a missing release ZIP (with `svn` off before approval). Works for tags from `v1.5.0` on, which contain `scripts/build-package.sh`; the SVN step changes nothing for a version already in SVN `tags/`. |
+| `wporg-assets.yml` | after a successful Release run (`workflow_run`), or manually | Pushes `readme.txt` (to `trunk/` and the current `Stable tag` folder) and `.wordpress-org/` (to `assets/`) with [`10up/action-wordpress-plugin-asset-update`](https://github.com/10up/action-wordpress-plugin-asset-update), never code and without a new version. Skipped with a notice without the SVN secrets, and also skipped with a notice until `tags/<Stable tag>` exists in SVN, so no readme-only commit reaches `trunk/` before the first `wporg-deploy.yml` run. Postponed while a Release run is still queued or running. |
+| `code-quality.yml`, job `package` | on every PR and push to `master` | Builds the package, uploads the ZIP as a workflow artifact, and runs [`WordPress/plugin-check-action`](https://github.com/WordPress/plugin-check-action) on the built folder with the latest WordPress. Any Plugin Check error fails the job; warnings show as annotations and in a PR comment. |
+
+`release.yml` and `wporg-deploy.yml` share the concurrency group `release`, so two releases, or a release and a manual deploy, never commit to SVN at the same time. GitHub keeps one running and one pending run per group, and a newer pending run cancels the older one. Between two Release runs that loses nothing, because the newer run releases every commit since the last tag. A manual deploy is different: dispatching `wporg-deploy.yml` while a Release run is running and another one is queued cancels the queued Release run, and its commits are not released until the next push to `master`. Dispatch `wporg-deploy.yml` only when no Release run is queued; if a queued Release run was cancelled anyway, re-run it from the Actions tab. The reverse also happens: a push to `master` cancels a manual deploy that is still waiting, so dispatch it again once the release has finished. `wporg-assets.yml` keeps its own group for the same reason, so that it can never cancel a waiting Release run; instead it postpones itself while a Release run is queued or running and runs again when that run completes, so it never puts an older `readme.txt` over the one a release just deployed.
+
+### Secrets
+
+Add both under **Settings → Secrets and variables → Actions**:
+
+| Secret | Value |
+|---|---|
+| `SVN_USERNAME` | Your WordPress.org username. It is case-sensitive. |
+| `SVN_PASSWORD` | The SVN-specific password you set in your WordPress.org account settings, not your login password. |
+
+The account must have commit access to the plugin. WordPress.org grants it to the submitting account on approval.
+
+### Before approval
+
+Without the secrets, the SVN steps in `release.yml` and `wporg-assets.yml` are skipped with a notice, and releases still reach GitHub. If a Release run fails after publishing the GitHub release, attach the missing ZIP with `wporg-deploy.yml` for that tag, `upload-zip` on and `svn` off; that needs no SVN secrets. To submit, upload `verify-phone-number-shift64.zip` from the latest GitHub release at [wordpress.org/plugins/developers/add](https://wordpress.org/plugins/developers/add/). WordPress.org derives the slug from the `Plugin Name` header; it must come out as `verify-phone-number-shift64`, the same as the text domain (D06).
+
+### First deploy after approval
+
+1. The approval email names the SVN repository (`https://plugins.svn.wordpress.org/verify-phone-number-shift64/`).
+2. Add `SVN_USERNAME` and `SVN_PASSWORD` as described above.
+3. In the Actions tab, run **WordPress.org deploy (manual)** (`wporg-deploy.yml`) with the latest release tag, for example `v1.5.0`, and the switches left at their defaults (`allow-older` off, `upload-zip` and `svn` on). Do it while no Release run is queued (see [Workflows](#workflows)). It commits `trunk/`, `tags/<version>/` and the listing assets from `.wordpress-org/` to `assets/`, and re-attaches the ZIP it built from that tag to the GitHub release. Any `wporg-assets.yml` run between steps 2 and 3 skips with a notice, because `tags/<Stable tag>` is not in SVN yet, so nothing reaches `trunk/` before this deploy.
+4. Check the listing at `https://wordpress.org/plugins/verify-phone-number-shift64/` once WordPress.org has processed the commit.
+
+From then on, every release deploys from `release.yml` without manual steps.
+
+### Readme and listing assets
+
+`readme.txt` is the listing text; `.wordpress-org/` holds the listing images: `icon-128x128.png`, `icon-256x256.png`, `icon.svg`, `banner-772x250.png`, `banner-1544x500.png`, and `screenshot-1.png`, `screenshot-2.png`, ... numbered in the order of the `== Screenshots ==` captions in `readme.txt`. A change to these alone needs no release: merge it with a non-releasing PR title such as `docs:`, and `wporg-assets.yml` pushes it after the Release workflow finishes (once the current `Stable tag` exists in SVN `tags/`).
+
+The `== Changelog ==` section of `readme.txt` is maintained by `scripts/sync-readme-changelog.php` (see Step 3); edit older entries by hand if needed, but let the release add new ones.
+
+### Plugin Check
+
+The `package` job must stay at 0 errors. Known warnings: the `load_plugin_textdomain()` call in the main plugin file stays on purpose, because the bundled `pl_PL` translation needs it on WordPress versions before 6.8; a second `load_plugin_textdomain` warning, in `BlockCheckoutValidator`, goes away with the fix for issue #32. To reproduce a CI failure locally, take the ZIP from the job's `verify-phone-number-shift64` artifact (or build it), install it on a test site that has the Plugin Check plugin and run `wp plugin check verify-phone-number-shift64` there. Checking the repository folder itself also reports development files that never ship.
+
+### Release cadence (Guideline 14)
+
+Every SVN commit regenerates the plugin's ZIP on WordPress.org, and Guideline 14 asks authors to avoid frequent commits: many small commits in a row strain the system and can look like gaming the "Recently Updated" list. Batch small fixes into one release instead of merging a string of `fix:` PRs back to back.
+
+### Sites installed from a GitHub ZIP
+
+Sites running 1.4.2 or earlier from a GitHub release ZIP still have the old built-in updater. It downloads the release asset named `verify-phone-number-shift64.zip`, so keep that asset name: it is how those sites reach the first release without the updater. After that they get updates from WordPress.org, but only in the folder `verify-phone-number-shift64`, because WordPress.org matches installs by folder name. This was checked on 2026-10-06 against its update API (a POST to `https://api.wordpress.org/plugins/update-check/1.1/` with a `WordPress/7.1.2` User-Agent): `query-monitor/query-monitor.php` was offered an update, the same plugin in `query-monitor-master/`, `query-monitor-main/` or an arbitrary folder was not, and wp-crontrol, user-switching, akismet, woocommerce and wordpress-seo in `-master` folders were not offered one either. The one exception, `classic-editor-master`, looked like a server-side alias. This plugin is not in the directory yet, so it could not be checked itself. A copy installed in a differently named folder (for example `verify-phone-number-shift64-master` from a source archive) therefore has to be reinstalled from the directory.
 
 ---
 
@@ -1094,10 +663,10 @@ register_deactivation_hook( __FILE__, function() {
 1. Create feature branch
 2. Make changes
 3. Create PR with conventional title (e.g., `feat: add new feature`)
-4. PR checks run automatically (PHPCS, title validation)
+4. PR checks run automatically (PHPCS, title validation, Plugin Check on the built package)
 5. Merge to master
 6. Release workflow runs automatically
-7. WordPress sites detect update within 12 hours (or immediately if cache cleared)
+7. The same package is deployed to WordPress.org (once the SVN secrets exist), and WordPress offers the update to sites on its next update check
 
 ### Manual Commands
 
@@ -1108,55 +677,18 @@ composer phpcs
 # Auto-fix PHPCS issues
 composer phpcbf
 
-# Clear update cache (WP-CLI)
-wp transient delete yourprefix_github_release
-
-# Check cached release info
-wp transient get yourprefix_github_release
+# Build the release package locally (see Step 6 for what it checks).
+# It needs a production vendor/, so restore the dev tools afterwards.
+composer install --no-dev --optimize-autoloader
+./scripts/build-package.sh dist
+composer install
 ```
 
 ---
 
-## Private Repositories
+## Private Composer Dependencies
 
-For private GitHub repos, you need authentication for the updater.
-
-### Option 1: Fine-grained Personal Access Token (Recommended)
-
-1. Create token at GitHub → Settings → Developer settings → Personal access tokens → Fine-grained tokens
-2. Set permissions: Repository access → Only select repositories → Your plugin
-3. Permissions: Contents → Read-only
-4. Add token to wp-config.php:
-
-```php
-define( 'YOUR_PLUGIN_GITHUB_TOKEN', 'github_pat_xxxx' );
-```
-
-5. Modify `fetch_github_release()` in GitHubUpdater.php:
-
-```php
-$headers = array(
-    'Accept'     => 'application/vnd.github.v3+json',
-    'User-Agent' => 'WordPress/' . get_bloginfo( 'version' ) . '; ' . home_url(),
-);
-
-// Add authorization for private repos
-if ( defined( 'YOUR_PLUGIN_GITHUB_TOKEN' ) && YOUR_PLUGIN_GITHUB_TOKEN ) {
-    $headers['Authorization'] = 'Bearer ' . YOUR_PLUGIN_GITHUB_TOKEN;
-}
-
-$response = wp_safe_remote_get(
-    $api_url,
-    array(
-        'timeout' => 10,
-        'headers' => $headers,
-    )
-);
-```
-
-### CI for Private Composer Dependencies
-
-If your plugin depends on other private repos via Composer:
+If your plugin depends on other private repos via Composer, CI needs a token to install them. Whatever ends up in `vendor/` ships in the package, so a directory plugin's dependencies must still be GPL-compatible.
 
 ```yaml
 # In workflow file, before composer install
@@ -1171,7 +703,7 @@ If your plugin depends on other private repos via Composer:
 ### Release not triggered
 
 - Check PR title follows conventional format
-- Only `feat:`, `fix:`, `perf:` trigger releases
+- Only `feat:`, `fix:`, `perf:` (and a `BREAKING CHANGE:` footer) trigger releases; a `feat!:` subject is not parsed and releases nothing
 - Check GitHub Actions logs for errors
 
 ### PHPCS failing in CI
@@ -1180,27 +712,41 @@ If your plugin depends on other private repos via Composer:
 - Check `platform.php` is set in composer.json config
 - Run `composer phpcs` locally first
 
-### Update not showing in WordPress
-
-```bash
-# Clear transient cache
-wp transient delete yourprefix_github_release
-
-# Force WordPress update check
-wp plugin update --all --dry-run
-```
-
-### GitHub API rate limit
-
-- Unauthenticated: 60 requests/hour
-- With token: 5,000 requests/hour
-- Check rate limit: `curl -I https://api.github.com/rate_limit`
-
 ### Zip not found in release
 
 - Ensure release workflow completed successfully
-- Check release has `your-plugin-slug.zip` asset
-- Verify asset name matches `PLUGIN_SLUG . '.zip'` in GitHubUpdater
+- Check release has `your-plugin-slug.zip` asset (here `verify-phone-number-shift64.zip`)
+- Check the "Validate plugin package" step (runs before semantic-release) and the "Build plugin package" step in `release.yml`: `build-package.sh` stops when a guard rail fails (missing `vendor/autoload.php`, a dev `vendor/`, a hidden file or shell script in the package, a `Stable tag` that differs from the header `Version`). A failure in "Validate plugin package" stops the run before anything is tagged.
+- "Verify workspace is the release commit", "Build plugin package" and the upload run **after** semantic-release has pushed the tag and published the GitHub release, so a failure there leaves a published release without the ZIP, and re-running the Release run does not attach it (it finds no new commits to release). Fix the cause; for "Verify workspace is the release commit" that is usually a file `update-version.sh` changes that is missing from the `@semantic-release/git` assets in `.releaserc.json`. Then run `wporg-deploy.yml` for that tag with `upload-zip` on (and `svn` off before approval). Do it promptly: sites still on 1.4.x download exactly that asset through their old updater. If the missed file is `readme.txt` or the main plugin file, the tag carries the old version and `wporg-deploy.yml` stops at "Verify the tag carries this version"; the next release (a `fix:` commit) then replaces the broken one.
+
+### WordPress.org deploy skipped
+
+- The SVN steps run only when both `SVN_USERNAME` and `SVN_PASSWORD` exist as repository secrets; without them the workflow logs a notice and skips them
+- After adding the secrets, deploy the release that was skipped with `wporg-deploy.yml` (with `svn` on, the default, a manual deploy fails outright when the secrets are missing). If a newer release has been published since, deploy that one instead: the SVN deploy refuses a tag that is not the latest GitHub release unless `allow-older` is on, because an older tag would put older code on `trunk/` and move `Stable tag` back
+
+### WordPress.org readme sync skipped
+
+- `wporg-assets.yml` skips with a notice until `tags/<Stable tag>` exists in SVN; run `wporg-deploy.yml` for the latest release tag first
+- It also postpones itself while a Release run is queued or running, and runs again when that run completes
+
+### A Release run was cancelled
+
+- A manual `wporg-deploy.yml` dispatch replaces a Release run that is waiting in the shared `release` concurrency group (see [Workflows](#workflows)); re-run the cancelled Release run from the Actions tab
+
+### SVN authentication fails
+
+- The username is case-sensitive
+- `SVN_PASSWORD` must be the SVN-specific password from your WordPress.org account settings, not your login password
+- The account needs commit access to the plugin
+
+### PHPUnit job failing although no test failed
+
+- The "Run unit tests" step also requires PHPUnit's summary line (`OK (...)` or `OK, but ...`). A run that prints no result fails on purpose. The usual cause is a file whose `ABSPATH` guard ran before `tests/Unit/bootstrap.php` defined `ABSPATH`, which ends PHPUnit silently with exit code 0: load plugin files only after the bootstrap
+
+### Plugin Check job failing
+
+- Read the error code in the job log; packaging findings such as the errors `hidden_files` and `application_detected`, or the warning `unexpected_markdown_file`, mean a development file reached the package: add it to `.distignore`
+- Do not silence an error in the check configuration; fix the package or the code
 
 ---
 
@@ -1214,10 +760,13 @@ Before your first release:
 - [ ] Test PHPCS passes: `composer phpcs`
 - [ ] Verify version constant exists in main plugin file
 - [ ] Verify `readme.txt` has `Stable tag:` line
+- [ ] Check that `.distignore` keeps `vendor/` and `composer.json` in the package and everything else that is not runtime code out
 - [ ] Create initial release manually or push first `feat:` commit
 
 After setup:
 
 - [ ] Create test PR to verify checks work
 - [ ] Merge and verify release is created
-- [ ] Install plugin and verify update detection works
+- [ ] Confirm the `package` job reports 0 Plugin Check errors
+- [ ] Install the release ZIP on a test site and confirm it activates
+- [ ] After WordPress.org approval: add `SVN_USERNAME` / `SVN_PASSWORD` and run `wporg-deploy.yml` for the latest tag

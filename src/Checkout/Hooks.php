@@ -12,6 +12,11 @@ namespace Shift64\SmartPhoneValidation\Checkout;
 use libphonenumber\PhoneNumber;
 use Shift64\SmartPhoneValidation\Formatter\PhoneFormatter;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Single place where the checkout filters are applied, shared by classic and block checkout.
  */

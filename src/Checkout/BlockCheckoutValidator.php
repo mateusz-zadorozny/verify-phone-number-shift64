@@ -15,6 +15,11 @@ use Shift64\SmartPhoneValidation\Validation\PhoneValidator;
 use WC_Order;
 use WP_REST_Request;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Handles phone validation and formatting for WooCommerce block checkout (Store API).
  */

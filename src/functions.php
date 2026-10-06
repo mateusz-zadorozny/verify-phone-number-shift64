@@ -14,6 +14,11 @@ namespace Shift64\SmartPhoneValidation;
 use Shift64\SmartPhoneValidation\Formatter\PhoneFormatter;
 use Shift64\SmartPhoneValidation\Validation\PhoneValidator;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Validate a raw phone number and return it in the requested format.
  *

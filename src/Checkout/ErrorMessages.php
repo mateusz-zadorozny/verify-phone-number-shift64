@@ -11,6 +11,11 @@ namespace Shift64\SmartPhoneValidation\Checkout;
 
 use Shift64\SmartPhoneValidation\Validation\ValidationResult;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Maps validation error codes to messages shown to the customer.
  *

@@ -13,6 +13,11 @@ use libphonenumber\NumberParseException;
 use libphonenumber\PhoneNumberUtil;
 use Shift64\SmartPhoneValidation\Admin\Settings;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Validates phone numbers using libphonenumber.
  */

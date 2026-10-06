@@ -9,6 +9,11 @@ declare(strict_types=1);
 
 namespace Shift64\SmartPhoneValidation\Admin;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Checks if required plugin dependencies are active.
  */
@@ -38,6 +43,11 @@ class DependencyChecker {
 	 * @return void
 	 */
 	public static function render_woocommerce_notice(): void {
+		// Only people who can install or activate WooCommerce can act on this notice.
+		if ( ! current_user_can( 'activate_plugins' ) ) {
+			return;
+		}
+
 		?>
 		<div class="notice notice-error">
 			<p>

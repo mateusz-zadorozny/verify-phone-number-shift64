@@ -1,10 +1,12 @@
 <?php
 /**
  * Plugin Name:     Verify Phone Number Shift64
- * Plugin URI:      https://shift64.com/services/custom-woocommerce-coding
- * Description:     Smart phone number validation and formatting for WordPress using Google's libphonenumber library.
+ * Plugin URI:      https://github.com/mateusz-zadorozny/verify-phone-number-shift64
+ * Description:     Validates and formats WooCommerce checkout phone numbers with Google's libphonenumber library.
  * Author:          Mateusz Zadorożny (SHIFT64)
  * Author URI:      https://shift64.com
+ * License:         GPLv2 or later
+ * License URI:     https://www.gnu.org/licenses/gpl-2.0.html
  * Text Domain:     verify-phone-number-shift64
  * Domain Path:     /languages
  * Version:         1.4.2
@@ -12,7 +14,7 @@
  * Requires at least: 5.0
  * Requires Plugins: woocommerce
  * WC requires at least: 7.2
- * WC tested up to: 10.9
+ * WC tested up to: 11.1
  *
  * @package Shift64\SmartPhoneValidation
  */
@@ -44,18 +46,29 @@ add_action(
 	}
 );
 
-// Load Composer autoloader.
+// Load the bundled Composer autoloader (libphonenumber and the plugin classes).
 $shift64_autoloader = SHIFT64_PHONE_VALIDATION_PATH . 'vendor/autoload.php';
 
 if ( file_exists( $shift64_autoloader ) ) {
 	require_once $shift64_autoloader;
+
+	// Public helpers such as format_phone(). Required here instead of through Composer's
+	// "files" autoload: their ABSPATH guard would otherwise stop dev tools that include
+	// vendor/autoload.php outside WordPress (PHPUnit, WP-CLI) before they start.
+	require_once SHIFT64_PHONE_VALIDATION_PATH . 'src/functions.php';
 } else {
+	// The vendor/ folder ships inside every release package; it is only missing from an
+	// incomplete upload or a source checkout. Tell the people who can fix it, and stop.
 	add_action(
 		'admin_notices',
 		function () {
+			if ( ! current_user_can( 'activate_plugins' ) ) {
+				return;
+			}
+
 			echo '<div class="notice notice-error"><p>';
 			echo esc_html__(
-				'Verify Phone Number Shift64: Composer autoloader not found. Please run "composer install" in the plugin directory.',
+				'Verify Phone Number Shift64 cannot run because its bundled vendor folder is missing. Reinstall the plugin from WordPress.org or from the release ZIP on GitHub.',
 				'verify-phone-number-shift64'
 			);
 			echo '</p></div>';
@@ -64,7 +77,9 @@ if ( file_exists( $shift64_autoloader ) ) {
 	return;
 }
 
-// Load plugin text domain for translations (early, before REST API processing).
+// Register the bundled languages/ folder for WordPress versions before 6.8, which do not
+// read Domain Path on their own. Translations from translate.wordpress.org take precedence.
+// Runs early so the strings are ready before Store API requests are handled.
 add_action(
 	'plugins_loaded',
 	function () {
@@ -81,9 +96,6 @@ add_action(
 add_action(
 	'plugins_loaded',
 	function () {
-		// Initialize GitHub updater (runs regardless of WooCommerce).
-		Admin\GitHubUpdater::init();
-
 		if ( ! Admin\DependencyChecker::is_woocommerce_active() ) {
 			Admin\DependencyChecker::display_woocommerce_missing_notice();
 			return;
@@ -107,18 +119,3 @@ add_action(
 		Checkout\Assets::init();
 	}
 );
-
-/**
- * Plugin deactivation callback.
- *
- * Hooks live for a single request, so there is nothing to unhook - only cached data is cleared.
- * Settings are intentionally NOT deleted here (see uninstall.php) so they survive reactivation.
- *
- * @return void
- */
-function shift64_phone_validation_deactivate(): void {
-	Admin\GitHubUpdater::clear_cache();
-}
-
-// Register deactivation hook.
-register_deactivation_hook( __FILE__, __NAMESPACE__ . '\\shift64_phone_validation_deactivate' );

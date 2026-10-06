@@ -1,2 +1,8 @@
-*.sh  text eol=lf
-*.ps1 text
+# Line endings. readme.txt stays LF so the release scripts and the WordPress.org readme parser
+# see the same bytes everywhere (.editorconfig asks editors for CRLF on *.txt).
+*.sh       text eol=lf
+readme.txt text eol=lf
+*.ps1      text
+
+# No export-ignore rules: the package is built from .distignore by scripts/build-package.sh.
+# GitHub's "Source code" archives stay full source; they are not installable (no vendor/).

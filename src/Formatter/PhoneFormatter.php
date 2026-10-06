@@ -14,6 +14,11 @@ use libphonenumber\PhoneNumberFormat;
 use libphonenumber\PhoneNumberUtil;
 use Shift64\SmartPhoneValidation\Admin\Settings;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Formats phone numbers according to various standards.
  */

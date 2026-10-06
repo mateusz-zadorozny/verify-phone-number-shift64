@@ -10,6 +10,8 @@
 	<exclude-pattern>/node_modules/*</exclude-pattern>
 	<exclude-pattern>/dist/*</exclude-pattern>
 	<exclude-pattern>/tests/*</exclude-pattern>
+	<!-- Release CLI scripts: never shipped (see .distignore), not WordPress runtime code. -->
+	<exclude-pattern>/scripts/*</exclude-pattern>
 	<exclude-pattern>/assets/build/*</exclude-pattern>
 
 	<!-- How to scan -->

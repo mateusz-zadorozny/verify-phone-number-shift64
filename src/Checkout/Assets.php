@@ -11,6 +11,11 @@ namespace Shift64\SmartPhoneValidation\Checkout;
 
 use Shift64\SmartPhoneValidation\Admin\Settings;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Handles loading of checkout-related assets (JS/CSS).
  */

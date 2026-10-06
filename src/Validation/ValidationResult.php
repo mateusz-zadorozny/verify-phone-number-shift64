@@ -11,6 +11,11 @@ namespace Shift64\SmartPhoneValidation\Validation;
 
 use libphonenumber\PhoneNumber;
 
+// Prevent direct access.
+if ( ! defined( 'ABSPATH' ) ) {
+	exit;
+}
+
 /**
  * Represents the result of a phone number validation.
  */

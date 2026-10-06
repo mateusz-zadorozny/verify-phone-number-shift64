@@ -2,19 +2,21 @@
 
 Phone number validation and formatting for WooCommerce checkout, powered by Google's [libphonenumber](https://github.com/giggsey/libphonenumber-for-php-lite) (v9).
 
-The plugin checks billing and shipping phone numbers when an order is placed, rejects numbers that are not real for the given country, and (optionally) rewrites valid numbers into one consistent format before they are stored on the order.
+The plugin checks billing and shipping phone numbers when an order is placed, rejects numbers that are not real for the given country, and (optionally) rewrites valid numbers into one consistent format before they are stored on the order. It validates numbers only: it does not send SMS messages or one-time codes and does not confirm that a number belongs to the customer.
+
+This README is the developer documentation. The WordPress.org listing text lives in [`readme.txt`](readme.txt).
 
 ## Features
 
-- Validates **billing** and **shipping** phone numbers (shipping phone is optional – validated only when filled in)
+- Validates **billing** and **shipping** phone numbers (the shipping phone only when filled in; whether a phone is required stays a WooCommerce setting, which WooCommerce applies to the shipping phone too)
 - Works with both **classic checkout** (shortcode) and **block checkout** (Store API)
 - Uses the address country as parsing context – `600 123 456` with country `PL` is understood as `+48600123456`
-- Input normalization: spaces (including non-breaking ones pasted from documents), dashes, dots, slashes and parentheses are stripped, a leading `00` is treated as `+`
-- Two validation modes: *default country + international* or *international only* (number must start with `+`)
+- Input normalization: spaces (including non-breaking ones pasted from documents), hyphens, dots, slashes and parentheses are stripped, a leading `00` is treated as `+` (typographic dashes such as `–` are rejected by WooCommerce's own `WC_Validation::is_phone()` before the plugin runs)
+- Two validation modes: *default country + international* or *international only* (every number must carry its country prefix, typed with `+` or `00`)
 - Output formats: E.164 (`+48600123456`), international (`+48 600 123 456`), national (`600 123 456`)
-- Highlights the offending phone field on checkout (small JS helpers, no build step; can be switched off for themes with their own error UX)
-- Translations: English and Polish; error messages in block checkout follow Polylang / WPML language
-- Self-updates from GitHub releases (one-click update in WP Admin)
+- Highlights the offending phone field on checkout (small JS helpers, no build step; can be switched off for themes with their own error UX). Open gaps: no highlight on the classic checkout with a block theme ([#33](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/33)) or on a classic checkout page when the configured checkout page is a block one ([#34](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/34))
+- Translations: English and Polish; on WordPress 6.7+ block-checkout messages fall back to English on non-English sites, with or without Polylang / WPML, until [#32](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/32) is fixed (and on those sites the block checkout cannot highlight the field)
+- No external requests: validation runs on the server with the rules bundled in `vendor/`
 
 ## Requirements
 
@@ -24,19 +26,38 @@ The plugin checks billing and shipping phone numbers when an order is placed, re
 
 ## Installation
 
-**Use the release ZIP, not GitHub's "Download ZIP" button.**
+**From WordPress.org** (once the plugin is listed): *Plugins → Add New Plugin*, search for "Verify Phone Number Shift64", install and activate. Updates then arrive through *Dashboard → Updates* like any other directory plugin.
+
+**From a release ZIP:**
 
 1. Download `verify-phone-number-shift64.zip` from the [latest release](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/releases/latest).
-2. In WP Admin go to *Plugins → Add New → Upload Plugin* and upload the file.
+2. In WP Admin go to *Plugins → Add New Plugin → Upload Plugin* and upload the file.
 3. Activate the plugin.
 
-Why it matters: the release ZIP contains the `vendor/` directory with libphonenumber. A source download (folder named `verify-phone-number-shift64-master`) does not – the plugin will only show a "Composer autoloader not found" notice and do nothing. The auto-updater works from any folder name, but it still needs `vendor/`.
+**Never use GitHub's *Code → Download ZIP* button.** That is a source archive: it has no `vendor/` directory (libphonenumber and the autoloader), and it unpacks into a folder named `verify-phone-number-shift64-master`. The plugin then only shows an admin notice that its bundled vendor folder is missing and does nothing. The release ZIP contains a production `vendor/` and unpacks into `verify-phone-number-shift64/`.
 
-If you do install from source, run inside the plugin directory:
+If you do run the plugin from a git checkout, install the dependencies inside the plugin directory:
 
 ```bash
-composer install --no-dev --optimize-autoloader
+composer install --no-dev --optimize-autoloader   # runtime only; use plain `composer install` for development
 ```
+
+### Moving an existing GitHub install to WordPress.org updates
+
+Up to 1.4.2 the plugin updated itself from GitHub releases. That updater is removed in 1.5.0 (WordPress.org does not allow plugins to install updates from other servers); from 1.5.0 on, updates come from WordPress.org only.
+
+WordPress.org only updates a plugin installed in the folder **`verify-phone-number-shift64`** (verified on 2026-10-06: the live update API, `api.wordpress.org/plugins/update-check/1.1/`, offered an update for `query-monitor/query-monitor.php` but not for the same plugin in `query-monitor-master/` or other renamed folders, and likewise for several other plugins). A site that installed the release ZIP is already in that folder and needs nothing. A copy in any other folder – for example `verify-phone-number-shift64-master` from a source archive – gets no directory updates (the old updater kept whatever folder name it found, so such a copy is still in its old folder after updating to 1.5.0).
+
+To move such a copy, replace it with WP-CLI, which keeps the settings:
+
+```bash
+wp plugin list --fields=name,status,version     # find the folder name
+wp plugin deactivate verify-phone-number-shift64-master
+wp plugin delete verify-phone-number-shift64-master    # removes the files only, does NOT run uninstall.php
+wp plugin install verify-phone-number-shift64 --activate    # from WordPress.org, or pass the path/URL of the release ZIP
+```
+
+Do **not** remove the old copy with *Delete* on the WP Admin *Plugins* screen: that runs `uninstall.php`, which deletes the plugin's settings (the five `shift64_phone_validation_*` options). Phone numbers already saved on orders are not affected either way.
 
 ## Settings
 
@@ -45,13 +66,13 @@ composer install --no-dev --optimize-autoloader
 
 | Setting | Option name | Default | Description |
 | --- | --- | --- | --- |
-| Enable Validation | `shift64_phone_validation_enabled` | `yes` | Master switch for validation and formatting |
+| Enable Validation | `shift64_phone_validation_enabled` | `yes` | Master switch for validation, formatting, the whitespace clean-up and the checkout scripts |
 | Default Country | `shift64_phone_validation_default_country` | `PL` | Fallback only: region used for numbers without `+` **when the address has no country**. See [Country context](#country-context) |
-| Validation Mode | `shift64_phone_validation_validation_mode` | `default_and_international` | `international_only` rejects every number without a `+` prefix |
+| Validation Mode | `shift64_phone_validation_validation_mode` | `default_and_international` | `international_only` rejects every number without a country prefix (`+` or `00`) |
 | Output Format | `shift64_phone_validation_output_format` | `E164` | `E164`, `INTERNATIONAL` or `NATIONAL` |
 | Enable Formatting on Save | `shift64_phone_validation_format_on_save` | `yes` | Rewrite valid numbers to the output format before saving the order |
 
-Settings are stored as regular `wp_options` rows. They are kept on deactivation and removed when the plugin is deleted (`uninstall.php`); phone numbers already saved on orders are never touched.
+Settings are stored as regular `wp_options` rows. They are kept on deactivation and removed when the plugin is deleted from WP Admin (`uninstall.php`; WP-CLI's `wp plugin delete` skips it). Phone numbers already saved on orders are never touched.
 
 ## Country context
 
@@ -65,7 +86,7 @@ A number typed **without** a prefix is read in the country of the billing / ship
 | `600 100 200` | GB, CZ, US | rejected |
 | `600 100 200` | DE, FR | **valid** → stored as `+49600100200` / `+33600100200` |
 
-The last row is the limitation to be aware of on stores selling abroad: a customer with a foreign address and a domestic phone must type the prefix. If that is a concern, use the *International only* validation mode (every number must start with `+`), or tell customers in the field description to include the prefix. Single-country stores are not affected.
+The last row is the limitation to be aware of on stores selling abroad: a customer with a foreign address and a domestic phone must type the prefix. If that is a concern, use the *International only* validation mode (every number must carry its country prefix), or tell customers in the field description to include the prefix. Single-country stores are not affected.
 
 ## How it works
 
@@ -79,20 +100,25 @@ raw input ──► Normalizer ──► PhoneValidator ──► ValidationResu
 | Classic | `woocommerce_after_checkout_validation` | `woocommerce_checkout_create_order` |
 | Block (Store API) | `woocommerce_store_api_checkout_update_order_from_request`, **POST (place order) only** – throws `RouteException`, HTTP 400 with `field` and error `code` | same hook; WooCommerce saves the order |
 
+Only these checkout hooks are registered, so orders created or edited in the admin and My Account addresses are never validated directly. Two side effects of the block hook: paying for an existing order through the Store API (`POST /wc/store/v1/checkout/{order_id}`) fires the same hook, so the phones sent with that payment are validated and formatted; and after the hook WooCommerce copies the order's (formatted) phones to the customer account of a logged-in customer or one created at checkout. On the classic checkout the customer is saved before the order is created, so the account keeps the phone without the plugin's formatting.
+
 Before either hook runs, WooCommerce itself checks phone fields with `WC_Validation::is_phone()`, whose pattern only knows ASCII whitespace: a number with a non-breaking space (pasted from Word, Outlook or a PDF) would be rejected with WooCommerce's own message before the plugin sees it. `Checkout\WhitespaceFilter` therefore collapses Unicode whitespace to plain spaces first, on `woocommerce_process_checkout_field_billing_phone` / `..._shipping_phone` (classic) and on `rest_pre_dispatch` for `/wc/store/*` requests (Store API). Only the kind of space changes, separators stay.
 
 Code layout:
 
 ```
 verify-phone-number-shift64.php   bootstrap, constants, hook registration
+uninstall.php                     deletes the plugin's options when it is deleted from WP Admin
+src/functions.php                 public helpers (format_phone())
 src/Admin/Settings.php            WooCommerce settings tab + option getters
-src/Admin/GitHubUpdater.php       update check against GitHub releases (cached 12 h)
 src/Admin/DependencyChecker.php   "WooCommerce missing" notice
 src/Validation/                   Normalizer, PhoneValidator, ValidationResult
 src/Formatter/PhoneFormatter.php  E.164 / international / national output
 src/Checkout/                     classic + block checkout integration, whitespace pre-clean, error messages, asset loading
 assets/js/                        field highlighting for both checkout types
 languages/                        .pot, en_US, pl_PL
+scripts/                          release tooling (version bump, readme changelog sync, package build) – not shipped
+.wordpress-org/                   WordPress.org directory icons, banners and screenshots – not shipped
 ```
 
 ## Developers
@@ -102,9 +128,9 @@ Validation logic lives in the plugin, presentation can live in the theme. All ex
 | Filter | Arguments | Purpose |
 | --- | --- | --- |
 | `shift64_phone_validation_enqueue_assets` | `bool $enqueue` | Return `false` to skip the highlighting scripts when the theme has its own checkout error UX. Validation is server-side and keeps working. |
-| `shift64_phone_validation_error_message` | `string $message, ?string $code, string $field, string $context` | Reword the customer-facing message. `$code`: `missing_international_prefix`, `invalid_number`, `too_short`, `too_long`, `not_a_number`, `invalid_country_code`, `parse_error`. `$field`: `billing` / `shipping`. `$context`: `classic` / `block`. |
+| `shift64_phone_validation_error_message` | `string $message, ?string $code, string $field, string $context` | Reword the customer-facing message. `$code`: `missing_international_prefix`, `invalid_number`, `too_short`, `too_long`, `not_a_number`, `invalid_country_code`, `parse_error`, `empty` (input made only of separators). `$field`: `billing` / `shipping`. `$context`: `classic` / `block`. |
 | `shift64_phone_validation_should_validate` | `bool $validate, string $field, array\|WC_Order $context` | Return `false` to skip validation **and** formatting for a field in this request (e.g. staff orders); the whitespace clean-up still runs. `$context` is the posted data on classic checkout, the order otherwise. |
-| `shift64_phone_validation_formatted_phone` | `string $formatted, PhoneNumber $number, string $field, WC_Order $order` | Change the value stored on the order. |
+| `shift64_phone_validation_formatted_phone` | `string $formatted, PhoneNumber $number, string $field, WC_Order $order` | Change the value stored on the order. `$number` is a `libphonenumber\PhoneNumber`; `PhoneFormatter::format_to()` formats it differently. Runs only while *Enable Formatting on Save* is on. |
 
 ```php
 // Theme owns the error UX and the wording.
@@ -121,7 +147,7 @@ add_filter(
 );
 ```
 
-An integration that needs a different format than the stored one can use the helper (guard it – it only exists while the plugin is active):
+An integration that needs a different format than the stored one can use the helper `Shift64\SmartPhoneValidation\format_phone( string $raw_phone, ?string $country_code = null, string $format = 'E164' ): ?string`. It validates the number (with the current *Validation Mode*, so in *International only* mode a number without `+` / `00` returns `null` even when `$country_code` is passed) and returns it in `E164`, `INTERNATIONAL` or `NATIONAL` format (upper case; any other value returns E.164), or `null` when it is not valid; without `$country_code` the *Default Country* setting is used. Guard the call – it only exists while the plugin is active:
 
 ```php
 if ( function_exists( 'Shift64\\SmartPhoneValidation\\format_phone' ) ) {
@@ -131,18 +157,32 @@ if ( function_exists( 'Shift64\\SmartPhoneValidation\\format_phone' ) ) {
 
 Classic checkout errors are added with the field id (`data-id="billing_phone"` / `shipping_phone` on the notice `<li>`), and every default message contains the word "phone" (pl_PL: "telefon"), so both id-based and keyword-based theme mappers can attach them to the field.
 
-**Before enabling "Formatting on Save"** check every consumer of the order phone (ERP / order export, courier labels, SMS gateway): the stored value changes shape, e.g. `600 100 200` → `+48600100200`.
+Block checkout shows Store API errors in a generic banner, so the highlighting script recognises the plugin's notices by their exact text. When the script loads, `shift64_phone_validation_error_message` is applied for `missing_international_prefix` and `invalid_number` with `$context` = `block`, and those two messages per field are what the script looks for. If your filter returns a separate message for another code (for example `too_short`), the block checkout still shows it but cannot highlight the field.
+
+**Formatting on Save is on by default.** Before going live, check every consumer of the order phone (order export, courier labels, SMS gateway): the stored value changes shape, e.g. `600 100 200` → `+48600100200`.
 
 ## Development
 
 ```bash
 composer install      # PHP dependencies + PHPCS tooling
-npm ci                # semantic-release tooling
+npm ci                # semantic-release and e2e tooling
 
 composer phpcs        # WordPress Coding Standards + PHPCompatibilityWP
 composer phpcbf       # auto-fix what can be fixed
-composer makepot      # regenerate languages/*.pot
 ```
+
+### Translations
+
+Every user-facing string uses the `verify-phone-number-shift64` text domain. After changing strings:
+
+```bash
+composer makepot      # regenerate languages/verify-phone-number-shift64.pot (slug pinned, so the folder name does not matter)
+composer makepo       # merge the new .pot into the en_US and pl_PL .po files (wp i18n update-po)
+# translate the new entries in languages/*.po, then:
+composer makemo       # compile the .mo files (wp i18n make-mo)
+```
+
+The bundled files are registered with `load_plugin_textdomain()` in the main plugin file, which older WordPress versions need to find them (see the comment there). Once the plugin is listed, translations can also be contributed on translate.wordpress.org.
 
 ### Tests
 
@@ -150,7 +190,7 @@ composer makepot      # regenerate languages/*.pot
 composer test         # PHPUnit unit suite (tests/Unit), no WordPress required
 ```
 
-The unit suite covers the pure logic: `Normalizer`, `PhoneValidator` (including error codes), `PhoneFormatter`, `ValidationResult` and the checkout error-message mapping in English and Polish. WordPress is not loaded; `get_option()` and `__()` are replaced by small stubs in `tests/Unit/bootstrap.php`.
+The unit suite covers the pure logic and the checkout integration: `Normalizer`, `PhoneValidator` (including error codes), `PhoneFormatter`, `ValidationResult`, the error-message mapping in English and Polish, the classic and block checkout validators, the filters and the whitespace pre-clean. WordPress is not loaded: WordPress functions are stubbed in `tests/Unit/bootstrap.php`, WooCommerce classes in `tests/Unit/stubs-woocommerce.php`.
 
 #### End-to-end (WooCommerce checkout in a real browser)
 
@@ -168,16 +208,39 @@ npm run env:stop
 
 Each git worktree gets its own containers; set `WP_ENV_PORT` to run several side by side (Playwright reads the same variable, `WP_BASE_URL` overrides it entirely). Tests live in `tests/e2e/*.spec.ts` with shared helpers in `tests/e2e/helpers/`; timeouts and retries belong in `playwright.config.ts`, never in a test. The `admin-*` specs log in to change plugin settings (and restore them afterwards), so the suite runs with one worker; they read `TEST_ADMIN_USER` / `TEST_ADMIN_PASSWORD` from the environment or from `.ai/qa/test-env.env`, which `sh .ai/scripts/test-env-up.sh` writes (the agent-pipeline entrypoint that wraps `wp-env start` and records the running instance in `.ai/qa/test-env.json`).
 
-CI runs PHPCS and the unit suite (`.github/workflows/code-quality.yml`) and the e2e suite (`.github/workflows/e2e.yml`) on every PR. `tests/bootstrap.php` and `bin/install-wp-tests.sh` are kept for a future WordPress integration suite.
+### Continuous integration
+
+On every pull request:
+
+- `.github/workflows/code-quality.yml` runs PHPCS and the unit suite, and a **package** job that builds the release package with `scripts/build-package.sh` and runs the official [Plugin Check](https://github.com/WordPress/plugin-check-action) on it, so every PR proves the package has no Plugin Check errors;
+- `.github/workflows/e2e.yml` runs the e2e suite. It also runs weekly and on demand, and logs the WordPress and WooCommerce versions it ran against, so a new core or WooCommerce release that breaks the checkout shows up without a code change;
+- `.github/workflows/pr-lint.yml` checks the PR title against Conventional Commits.
+
+`tests/bootstrap.php` and `bin/install-wp-tests.sh` are kept for a future WordPress integration suite.
+
+### What ships
+
+`.distignore` is the single source of truth for what goes into the plugin package. It keeps the runtime files – the main plugin file, `uninstall.php`, `src/`, `assets/`, `languages/`, the production `vendor/`, `composer.json`, `readme.txt` and `LICENSE` – and excludes development and process files (this README, `AGENTS.md` and the other process documents, `CHANGELOG.md`, `docs/`, `scripts/`, `tests/`, `bin/`, `.ai/`, `.wordpress-org/`, `.wp-env.json`, test and lint configs, `package*.json`, `composer.lock`, `node_modules/`, hidden files). Anything added at the repository root that is not plugin runtime code belongs in `.distignore`.
+
+Build the package locally (the build script refuses a `vendor/` that still contains dev dependencies):
+
+```bash
+composer install --no-dev -o && ./scripts/build-package.sh /tmp/vpn-build && composer install
+```
+
+The result is `/tmp/vpn-build/verify-phone-number-shift64.zip`; the trailing `composer install` restores the dev tooling.
 
 ### Releases
 
 Releases are fully automated with [semantic-release](https://semantic-release.gitbook.io/) on every push to `master`:
 
-- commit messages / PR titles follow [Conventional Commits](https://www.conventionalcommits.org/) (`fix:` → patch, `feat:` → minor, `BREAKING CHANGE` → major); PR titles are linted
-- `scripts/update-version.sh` bumps the plugin header, the `SHIFT64_PHONE_VALIDATION_VERSION` constant and `Stable tag` in `readme.txt`
-- the workflow builds `verify-phone-number-shift64.zip` (with production `vendor/`) and attaches it to the GitHub release
-- installed sites pick the new version up through `GitHubUpdater`
+- Pull requests are squash-merged, so the PR title becomes the commit message and decides the version ([Conventional Commits](https://www.conventionalcommits.org/)): `feat:` → minor, `fix:` / `perf:` → patch, `BREAKING CHANGE` → major, anything else → no release. PR titles are linted.
+- semantic-release writes `CHANGELOG.md`, and `scripts/update-version.sh` bumps the plugin header, the `SHIFT64_PHONE_VALIDATION_VERSION` constant and `Stable tag` in `readme.txt`. It also runs `scripts/sync-readme-changelog.php`, which prepends the new version to the `== Changelog ==` section of `readme.txt` from `CHANGELOG.md` and keeps the 10 most recent versions (older ones are linked to `CHANGELOG.md` on GitHub). Never bump versions by hand.
+- `scripts/build-package.sh` builds **one** package from the tagged commit. The same folder is used twice: zipped as `verify-phone-number-shift64.zip` and attached to the GitHub release, and deployed to the WordPress.org SVN repository (trunk + tag).
+- The WordPress.org deploy runs automatically once the repository secrets `SVN_USERNAME` and `SVN_PASSWORD` exist; until then the release workflow skips it with a notice.
+- `.github/workflows/wporg-deploy.yml` (manual, takes a tag) deploys an existing release to WordPress.org – for the first deploy after the plugin is approved and for retries.
+- `.github/workflows/wporg-assets.yml` syncs `readme.txt` and `.wordpress-org/` (icons, banners, screenshots) to WordPress.org without a new version – after each release and on demand, for listing-only changes.
+- Not automated: bump `Tested up to` in `readme.txt` (and `WC tested up to` in the plugin header) by hand after checking a new WordPress / WooCommerce major, and write an `== Upgrade Notice ==` entry by hand for releases that need one.
 
 Full walkthrough of the pipeline: [docs/CI-CD-SETUP.md](docs/CI-CD-SETUP.md). Version history: [CHANGELOG.md](CHANGELOG.md).
 
@@ -189,4 +252,6 @@ Sponsored by SHIFT64 – [Custom WooCommerce Coding](https://shift64.com/service
 
 ## License
 
-GPL-2.0-or-later
+GPL-2.0-or-later. The full license text is in [LICENSE](LICENSE).
+
+Bundled libraries (in the release package's `vendor/`): [libphonenumber-for-php-lite](https://github.com/giggsey/libphonenumber-for-php-lite) (Apache-2.0) and [symfony/polyfill-mbstring](https://github.com/symfony/polyfill-mbstring) (MIT). Apache-2.0 is compatible with GPLv3, so the plugin as a whole is distributed under the GPL through the "or later" clause.
