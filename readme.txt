@@ -4,7 +4,7 @@ Tags: phone validation, phone number, woocommerce, checkout, validation
 Requires at least: 5.0
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.5.0
+Stable tag: 1.5.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -118,6 +118,9 @@ It was installed from a copy of the source code (such as a ZIP of the GitHub rep
 
 == Changelog ==
 
+= 1.5.1 =
+* Fix: Highlight the phone field on block themes in classic checkout.
+
 = 1.5.0 =
 * New: Remove the GitHub updater and prepare for WordPress.org.
 
@@ -144,9 +147,6 @@ It was installed from a copy of the source code (such as a ZIP of the GitHub rep
 
 = 1.2.2 =
 * Fix: The GitHub updater offers updates regardless of the plugin folder name.
-
-= 1.2.1 =
-* Fix: The classic checkout no longer validates the shipping phone copied from billing, so the error is not shown twice.
 
 Older releases: [full changelog on GitHub](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/blob/master/CHANGELOG.md).
 

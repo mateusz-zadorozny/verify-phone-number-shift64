@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.5.0...v1.5.1) (2026-10-06)
+
+
+### Bug Fixes
+
+* **checkout:** highlight the phone field on block themes in classic checkout ([#40](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/40)) ([78f5b3b](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/78f5b3bdae63174d02d489ceb0486e9d22222383))
+
 # [1.5.0](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.4.2...v1.5.0) (2026-10-06)
 
 
