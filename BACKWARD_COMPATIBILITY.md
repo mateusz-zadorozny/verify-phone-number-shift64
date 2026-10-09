@@ -63,11 +63,11 @@ The plugin rewrites the billing and shipping phone stored on the order via `WC_O
 
 ### 5. Environment requirements
 
-Declared in `verify-phone-number-shift64.php` and `composer.json`: PHP 8.3+, WordPress 5.0+, WooCommerce 7.2+.
+PHP 8.3+, declared in the plugin header (`Requires PHP`), `readme.txt` and `composer.json`; WordPress 7.1+, declared in the plugin header and `readme.txt` (`Requires at least`) and in the `SHIFT64_PHONE_VALIDATION_MIN_WP` constant, which a unit test keeps equal to both headers (raised from 5.0 in 2.0.0, see D07 in `.ai/specs/product-brief.md`); WooCommerce 7.2+, declared in the plugin header (`WC requires at least`).
 
 **Breaking:** raising any minimum — it makes the plugin refuse to run on sites where it currently works.
 
-**Required path:** a major release, with the reason in `CHANGELOG.md`. `DependencyChecker` must still degrade gracefully rather than fatal.
+**Required path:** a major release, with the reason in `CHANGELOG.md`. `DependencyChecker` must still degrade gracefully rather than fatal: below the WordPress minimum, or without WooCommerce, the plugin boots nothing and shows an admin notice.
 
 ### 6. Translation text domain
 

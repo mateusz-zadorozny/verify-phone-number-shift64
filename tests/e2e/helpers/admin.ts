@@ -81,6 +81,35 @@ export async function setOutputFormat(
 	await saveSettings( page );
 }
 
+/**
+ * Site Language values as WordPress stores them: English (United States) is
+ * the empty string. Other languages must already be installed, see
+ * tests/e2e/bin/seed.sh.
+ */
+export type SiteLanguage = '' | 'pl_PL';
+
+/**
+ * Settings > General > Site Language. Selectors use element ids and the
+ * untranslated "English (United States)" label, because the admin itself
+ * changes language with this setting.
+ */
+export async function setSiteLanguage(
+	page: Page,
+	language: SiteLanguage
+): Promise< void > {
+	await page.goto( '/wp-admin/options-general.php' );
+	await page
+		.locator( '#WPLANG' )
+		.selectOption(
+			language === '' ? { label: 'English (United States)' } : language
+		);
+	await page.locator( '#submit' ).click();
+	await expect(
+		page.locator( '#setting-error-settings_updated.notice-success' )
+	).toBeVisible();
+	await expect( page.locator( '#WPLANG' ) ).toHaveValue( language );
+}
+
 export async function setValidationEnabled(
 	page: Page,
 	enabled: boolean

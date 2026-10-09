@@ -96,21 +96,70 @@ class BlockCheckoutValidatorTest extends TestCase {
 		}
 	}
 
-	public function test_locale_is_switched_for_the_message_and_restored_afterwards(): void {
+	/**
+	 * Regression test for #32. Switching the locale is all it takes: WordPress loads the
+	 * text domain for the switched locale just in time. Unloading it by hand blocked
+	 * just-in-time loading and, since WordPress 6.7, left the message in English. There is
+	 * no unload_textdomain(), load_textdomain() or load_plugin_textdomain() stub, so
+	 * calling any of them again fails this test.
+	 */
+	public function test_message_is_built_in_the_switched_locale_and_the_locale_is_restored(): void {
 		$_SERVER['HTTP_REFERER'] = 'https://shop.test/pl/zamowienie/';
 		$this->use_polish();
+		$built_in = $this->record_locale_of_messages();
 
+		$this->assertSame( 'Telefon do płatności nie jest prawidłowym numerem telefonu.', $this->rejection_message() );
+		$this->assertSame( array( 'pl_PL' ), $built_in->getArrayCopy() );
+		$this->assertSame( array( 'switch_to_locale pl_PL', 'restore_previous_locale' ), $GLOBALS['shift64_test_locale']['calls'] );
+		$this->assertSame( 'en_US', get_locale() );
+		$this->assertSame( array(), $GLOBALS['shift64_test_locale']['switches'] );
+	}
+
+	/**
+	 * Regression test for #32: on a site already in the customer's language (the plain
+	 * pl_PL store) nothing is switched and the loaded translations are left alone.
+	 */
+	public function test_site_language_is_used_without_switching_or_reloading(): void {
+		$GLOBALS['shift64_test_locale']['current'] = 'pl_PL';
+		$this->use_polish();
+		$built_in = $this->record_locale_of_messages();
+
+		$this->assertSame( 'Telefon do płatności nie jest prawidłowym numerem telefonu.', $this->rejection_message() );
+		$this->assertSame( array( 'pl_PL' ), $built_in->getArrayCopy() );
+		$this->assertSame( array(), $GLOBALS['shift64_test_locale']['calls'] );
+	}
+
+	/**
+	 * Message of the RouteException an invalid billing phone causes.
+	 */
+	private function rejection_message(): string {
 		try {
 			BlockCheckoutValidator::validate_phones( new \WC_Order( array( 'billing_phone' => '1234' ) ) );
-			$this->fail( 'RouteException expected.' );
 		} catch ( RouteException $e ) {
-			$this->assertSame( 'Telefon do płatności nie jest prawidłowym numerem telefonu.', $e->getMessage() );
+			return $e->getMessage();
 		} finally {
 			unset( $_SERVER['HTTP_REFERER'] );
 		}
 
-		$this->assertSame( 'en_US', get_locale() );
-		$this->assertSame( array(), $GLOBALS['shift64_test_locale']['switches'] );
+		$this->fail( 'RouteException expected.' );
+	}
+
+	/**
+	 * Record the active locale each time a message is built (the message filter runs
+	 * inside ErrorMessages, right after translation).
+	 */
+	private function record_locale_of_messages(): \ArrayObject {
+		$locales = new \ArrayObject();
+
+		$this->add_filter(
+			'shift64_phone_validation_error_message',
+			static function ( $message ) use ( $locales ) {
+				$locales[] = get_locale();
+				return $message;
+			}
+		);
+
+		return $locales;
 	}
 
 	/**

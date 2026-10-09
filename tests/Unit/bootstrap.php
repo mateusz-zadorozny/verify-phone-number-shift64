@@ -47,15 +47,11 @@ if ( ! function_exists( '__' ) ) {
 	}
 }
 
-// --- Plugin constant and path helper used when translations are reloaded ----
-if ( ! defined( 'SHIFT64_PHONE_VALIDATION_FILE' ) ) {
-	define( 'SHIFT64_PHONE_VALIDATION_FILE', dirname( __DIR__, 2 ) . '/verify-phone-number-shift64.php' );
-}
-
-if ( ! function_exists( 'plugin_basename' ) ) {
-	function plugin_basename( $file ) {
-		return 'verify-phone-number-shift64/' . basename( $file );
-	}
+// --- Minimum WordPress version, defined by the main plugin file in WordPress ----
+// DependencyCheckerTest proves this value equals the main file's constant and both
+// "Requires at least" headers.
+if ( ! defined( 'SHIFT64_PHONE_VALIDATION_MIN_WP' ) ) {
+	define( 'SHIFT64_PHONE_VALIDATION_MIN_WP', '7.1' );
 }
 
 if ( ! class_exists( 'WP_Error' ) ) {
@@ -79,10 +75,73 @@ if ( ! class_exists( 'WP_Error' ) ) {
 	}
 }
 
+// --- Stubs used by the dependency checker tests ------------------------------
+// wp_get_wp_version() reports $GLOBALS['shift64_test_wp_version'], the core version
+// from wp-includes/version.php. get_bloginfo( 'version' ) reports the $wp_version
+// global, which other plugins can blank or fake: $GLOBALS['shift64_test_bloginfo_version']
+// when a test sets it, the core version otherwise. current_user_can() reports
+// $GLOBALS['shift64_test_can'], and add_action() records each registration in
+// $GLOBALS['shift64_test_actions'].
+$GLOBALS['shift64_test_wp_version']       = '7.1.2';
+$GLOBALS['shift64_test_bloginfo_version'] = null;
+$GLOBALS['shift64_test_can']              = true;
+$GLOBALS['shift64_test_actions']          = array();
+
+if ( ! function_exists( 'wp_get_wp_version' ) ) {
+	function wp_get_wp_version() {
+		return $GLOBALS['shift64_test_wp_version'];
+	}
+}
+
+if ( ! function_exists( 'is_wp_version_compatible' ) ) {
+	// Same logic as wp-includes/functions.php of WordPress 7.1, minus the override for
+	// WordPress core's own test suite.
+	function is_wp_version_compatible( $required ) {
+		$wp_version = wp_get_wp_version();
+
+		// Strip off any -alpha, -RC, -beta, -src suffixes.
+		list( $version ) = explode( '-', $wp_version );
+
+		if ( is_string( $required ) ) {
+			$trimmed = trim( $required );
+
+			if ( substr_count( $trimmed, '.' ) > 1 && str_ends_with( $trimmed, '.0' ) ) {
+				$required = substr( $trimmed, 0, -2 );
+			}
+		}
+
+		return empty( $required ) || version_compare( $version, $required, '>=' );
+	}
+}
+
+if ( ! function_exists( 'get_bloginfo' ) ) {
+	function get_bloginfo( $show = '', $filter = 'raw' ) {
+		if ( 'version' !== $show ) {
+			return '';
+		}
+		return $GLOBALS['shift64_test_bloginfo_version'] ?? $GLOBALS['shift64_test_wp_version'];
+	}
+}
+
+if ( ! function_exists( 'current_user_can' ) ) {
+	function current_user_can( $capability, ...$args ) {
+		return 'activate_plugins' === $capability && $GLOBALS['shift64_test_can'];
+	}
+}
+
+if ( ! function_exists( 'add_action' ) ) {
+	function add_action( $hook, $callback, $priority = 10, $accepted_args = 1 ) {
+		$GLOBALS['shift64_test_actions'][] = array( $hook, $callback );
+		return true;
+	}
+}
+
 // --- Stubs used by the block checkout tests ----------------------------------
+// 'calls' logs the locale switches in order.
 $GLOBALS['shift64_test_locale'] = array(
 	'current'  => 'en_US',
 	'switches' => array(),
+	'calls'    => array(),
 );
 
 if ( ! function_exists( 'get_locale' ) ) {
@@ -93,11 +152,13 @@ if ( ! function_exists( 'get_locale' ) ) {
 		return $GLOBALS['shift64_test_locale']['current'];
 	}
 	function switch_to_locale( $locale ) {
+		$GLOBALS['shift64_test_locale']['calls'][]    = "switch_to_locale {$locale}";
 		$GLOBALS['shift64_test_locale']['switches'][] = $GLOBALS['shift64_test_locale']['current'];
 		$GLOBALS['shift64_test_locale']['current']    = $locale;
 		return true;
 	}
 	function restore_previous_locale() {
+		$GLOBALS['shift64_test_locale']['calls'][] = 'restore_previous_locale';
 		$GLOBALS['shift64_test_locale']['current'] = array_pop( $GLOBALS['shift64_test_locale']['switches'] );
 		return $GLOBALS['shift64_test_locale']['current'];
 	}
@@ -106,12 +167,6 @@ if ( ! function_exists( 'get_locale' ) ) {
 	}
 	function home_url( $path = '' ) {
 		return 'https://shop.test' . $path;
-	}
-	function unload_textdomain( $domain ) {
-		return true;
-	}
-	function load_plugin_textdomain( $domain, $deprecated = false, $rel_path = false ) {
-		return true;
 	}
 	function esc_html( $text ) {
 		return $text;

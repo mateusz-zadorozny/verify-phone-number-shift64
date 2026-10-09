@@ -15,12 +15,12 @@ This README is the developer documentation. The WordPress.org listing text lives
 - Two validation modes: *default country + international* or *international only* (every number must carry its country prefix, typed with `+` or `00`)
 - Output formats: E.164 (`+48600123456`), international (`+48 600 123 456`), national (`600 123 456`)
 - Highlights the offending phone field on checkout (small JS helpers, no build step; can be switched off for themes with their own error UX). Open gap: no highlight on a classic checkout page when the configured checkout page is a block one ([#34](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/34))
-- Translations: English and Polish; on WordPress 6.7+ block-checkout messages fall back to English on non-English sites, with or without Polylang / WPML, until [#32](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/32) is fixed (and on those sites the block checkout cannot highlight the field)
+- Translations: English and Polish; on multilingual stores (Polylang, WPML) block-checkout messages follow the shopper's language
 - No external requests: validation runs on the server with the rules bundled in `vendor/`
 
 ## Requirements
 
-- WordPress 5.0+
+- WordPress 7.1+ (on an older version the plugin checks nothing and shows administrators a notice naming the required version)
 - WooCommerce 7.2+ (declared compatible with High-Performance Order Storage and Cart & Checkout blocks)
 - PHP 8.3+
 
@@ -44,7 +44,7 @@ composer install --no-dev --optimize-autoloader   # runtime only; use plain `com
 
 ### Moving an existing GitHub install to WordPress.org updates
 
-Up to 1.4.2 the plugin updated itself from GitHub releases. That updater is removed in 1.5.0 (WordPress.org does not allow plugins to install updates from other servers); from 1.5.0 on, updates come from WordPress.org only.
+Up to 1.4.2 the plugin updated itself from GitHub releases. That updater is removed in 1.5.0 (WordPress.org does not allow plugins to install updates from other servers); from 1.5.0 on, updates come from WordPress.org only. On WordPress below 7.1, take a 1.4.x site to 1.5.0 while 1.5.0 is the latest GitHub release (it is released well before 2.0.0 for this reason), or later by uploading the 1.5.0 release ZIP: the 1.4.x updater offers the latest GitHub release whatever the WordPress version, so it would install 2.0.0, which checks no phone numbers until WordPress is updated.
 
 WordPress.org only updates a plugin installed in the folder **`verify-phone-number-shift64`** (verified on 2026-10-06: the live update API, `api.wordpress.org/plugins/update-check/1.1/`, offered an update for `query-monitor/query-monitor.php` but not for the same plugin in `query-monitor-master/` or other renamed folders, and likewise for several other plugins). A site that installed the release ZIP is already in that folder and needs nothing. A copy in any other folder – for example `verify-phone-number-shift64-master` from a source archive – gets no directory updates (the old updater kept whatever folder name it found, so such a copy is still in its old folder after updating to 1.5.0).
 
@@ -111,7 +111,7 @@ verify-phone-number-shift64.php   bootstrap, constants, hook registration
 uninstall.php                     deletes the plugin's options when it is deleted from WP Admin
 src/functions.php                 public helpers (format_phone())
 src/Admin/Settings.php            WooCommerce settings tab + option getters
-src/Admin/DependencyChecker.php   "WooCommerce missing" notice
+src/Admin/DependencyChecker.php   WordPress version and WooCommerce checks, with their admin notices
 src/Validation/                   Normalizer, PhoneValidator, ValidationResult
 src/Formatter/PhoneFormatter.php  E.164 / international / national output
 src/Checkout/                     classic + block checkout integration, whitespace pre-clean, error messages, asset loading
@@ -187,7 +187,7 @@ composer makepo       # merge the new .pot into the en_US and pl_PL .po files (w
 composer makemo       # compile the .mo files (wp i18n make-mo)
 ```
 
-The bundled files are registered with `load_plugin_textdomain()` in the main plugin file, which older WordPress versions need to find them (see the comment there). Once the plugin is listed, translations can also be contributed on translate.wordpress.org.
+The bundled files are loaded just in time from the folder named by the `Domain Path: /languages` header; a language pack from translate.wordpress.org takes precedence for its locale. WordPress registers that folder itself only for a plugin activated per site, so the main plugin file also registers it with `load_plugin_textdomain()` for network-activated installs (since WordPress 6.7 that call loads no file; Plugin Check reports it as a warning, which is accepted). The block checkout switches to the shopper's locale with `switch_to_locale()` and never unloads the text domain (that left messages in English on WordPress 6.7+, [#32](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/32)). Once the plugin is listed, translations can also be contributed on translate.wordpress.org.
 
 ### Tests
 
@@ -209,9 +209,9 @@ npm run test:e2e     # Playwright against http://localhost:8888
 npm run env:stop
 ```
 
-`.wp-env.json` describes the environment (latest WordPress, PHP 8.3, latest WooCommerce, this checkout as the plugin). `tests/e2e/bin/seed.sh` runs after every `wp-env start` and is idempotent: Polish store, guest checkout, cash on delivery, flat-rate shipping, one simple product (`/product/e2e-test-product/`), the block checkout at `/checkout/` (set as the WooCommerce checkout page on every run) and a classic one at `/classic-checkout/`. Admin login is wp-env's default (`admin` / `password`).
+`.wp-env.json` describes the environment (latest WordPress, PHP 8.3, latest WooCommerce, this checkout as the plugin). `tests/e2e/bin/seed.sh` runs after every `wp-env start` and is idempotent: Polish store, guest checkout, cash on delivery, flat-rate shipping, one simple product (`/product/e2e-test-product/`), the block checkout at `/checkout/` (set as the WooCommerce checkout page on every run) and a classic one at `/classic-checkout/`, and the WordPress and WooCommerce `pl_PL` language packs, installed but not activated: the site stays English, and `block-checkout-polish-messages.spec.ts` switches it to Polish and back. Admin login is wp-env's default (`admin` / `password`).
 
-Each git worktree gets its own containers; set `WP_ENV_PORT` to run several side by side (Playwright reads the same variable, `WP_BASE_URL` overrides it entirely). Tests live in `tests/e2e/*.spec.ts` with shared helpers in `tests/e2e/helpers/`; timeouts and retries belong in `playwright.config.ts`, never in a test. Some specs log in to change global settings and restore them afterwards: the `admin-*` specs change plugin settings, and `classic-checkout-block-theme-highlight.spec.ts` makes `/classic-checkout/` the WooCommerce checkout page (`woocommerce_checkout_page_id`) for each of its tests ([#34](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/34)). That is why the suite runs with one worker. These specs read `TEST_ADMIN_USER` / `TEST_ADMIN_PASSWORD` from the environment or from `.ai/qa/test-env.env`, which `sh .ai/scripts/test-env-up.sh` writes (the agent-pipeline entrypoint that wraps `wp-env start` and records the running instance in `.ai/qa/test-env.json`). If a run is killed before it can restore the checkout page, `npm run env:seed` (or the next `wp-env start`) sets it back to `/checkout/`.
+Each git worktree gets its own containers; set `WP_ENV_PORT` to run several side by side (Playwright reads the same variable, `WP_BASE_URL` overrides it entirely). Tests live in `tests/e2e/*.spec.ts` with shared helpers in `tests/e2e/helpers/`; timeouts and retries belong in `playwright.config.ts`, never in a test. Some specs log in to change global settings and restore them afterwards: the `admin-*` specs change plugin settings, `classic-checkout-block-theme-highlight.spec.ts` makes `/classic-checkout/` the WooCommerce checkout page (`woocommerce_checkout_page_id`) for each of its tests ([#34](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/34)), and `block-checkout-polish-messages.spec.ts` switches the site language. That is why the suite runs with one worker. These specs read `TEST_ADMIN_USER` / `TEST_ADMIN_PASSWORD` from the environment or from `.ai/qa/test-env.env`, which `sh .ai/scripts/test-env-up.sh` writes (the agent-pipeline entrypoint that wraps `wp-env start` and records the running instance in `.ai/qa/test-env.json`). If a run is killed before it can restore its settings, `npm run env:seed` (or the next `wp-env start`) sets the checkout page back to `/checkout/` and the site language back to English.
 
 ### Continuous integration
 

@@ -43,6 +43,26 @@ export async function fillBlockCheckout(
 	await page.getByLabel( /^Phone/ ).fill( phone );
 }
 
+/**
+ * Same as fillBlockCheckout(), through field ids instead of English labels, for
+ * a store in another language. With "Use same address for billing" checked
+ * (the default) only the shipping form is rendered: its phone is also the
+ * billing phone.
+ */
+export async function fillBlockCheckoutByFieldId(
+	page: Page,
+	phone: string
+): Promise< void > {
+	await page.goto( BLOCK_CHECKOUT_PATH );
+	await page.locator( '#email' ).fill( customer.email );
+	await page.locator( '#shipping-first_name' ).fill( customer.firstName );
+	await page.locator( '#shipping-last_name' ).fill( customer.lastName );
+	await page.locator( '#shipping-address_1' ).fill( customer.address );
+	await page.locator( '#shipping-city' ).fill( customer.city );
+	await page.locator( '#shipping-postcode' ).fill( customer.postcode );
+	await page.locator( '#shipping-phone' ).fill( phone );
+}
+
 export async function fillClassicCheckout(
 	page: Page,
 	phone: string

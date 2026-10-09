@@ -64,6 +64,19 @@ seed_instance() {
 	esac
 	wp option update woocommerce_checkout_page_id "$checkout_page_id" >/dev/null
 
+	echo "seed: [$instance] Polish language packs (installed, not activated)"
+	# block-checkout-polish-messages.spec.ts switches the site to pl_PL and back.
+	# Installing an installed language only logs "already installed".
+	wp language core install pl_PL >/dev/null
+	# wp-env unpacks WooCommerce into woocommerce.latest-stable/, so WP-CLI cannot
+	# read its version and requests the pack for the WordPress version number:
+	# the WooCommerce wording may be older than WooCommerce itself. No spec relies
+	# on it, so a failed download only warns.
+	wp language plugin install woocommerce pl_PL >/dev/null ||
+		echo "seed: [$instance] warning: WooCommerce pl_PL language pack not installed" >&2
+	# Every other spec expects English: undo a run interrupted while in Polish.
+	wp site switch-language en_US >/dev/null
+
 	echo "seed: [$instance] plugin defaults"
 	wp option update shift64_phone_validation_enabled yes >/dev/null
 	wp option update shift64_phone_validation_default_country PL >/dev/null

@@ -51,6 +51,10 @@
 	<rule ref="PHPCompatibilityWP"/>
 	<config name="testVersion" value="8.3-"/>
 
+	<!-- Minimum WordPress version for the WordPress sniffs (deprecated functions, classes and
+	     parameters). Keep equal to SHIFT64_PHONE_VALIDATION_MIN_WP in the main plugin file. -->
+	<config name="minimum_wp_version" value="7.1"/>
+
 	<!-- Allow PSR-4 file naming for src/ directory -->
 	<rule ref="WordPress.Files.FileName">
 		<exclude-pattern>/src/*</exclude-pattern>

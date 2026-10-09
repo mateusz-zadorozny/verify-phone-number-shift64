@@ -644,7 +644,7 @@ The `== Changelog ==` section of `readme.txt` is maintained by `scripts/sync-rea
 
 ### Plugin Check
 
-The `package` job must stay at 0 errors. Known warnings: the `load_plugin_textdomain()` call in the main plugin file stays on purpose, because the bundled `pl_PL` translation needs it on WordPress versions before 6.8; a second `load_plugin_textdomain` warning, in `BlockCheckoutValidator`, goes away with the fix for issue #32. To reproduce a CI failure locally, take the ZIP from the job's `verify-phone-number-shift64` artifact (or build it), install it on a test site that has the Plugin Check plugin and run `wp plugin check verify-phone-number-shift64` there. Checking the repository folder itself also reports development files that never ship.
+The `package` job must stay at 0 errors. One warning is expected and accepted: `load_plugin_textdomainFound` for the `load_plugin_textdomain()` call in the main plugin file. WordPress 7.1 registers the bundled `languages/` folder from the `Domain Path` header itself only for plugins activated per site, so a network-activated install needs that call; since WordPress 6.7 it loads no file. The second 1.x warning, for `BlockCheckoutValidator`, is gone with its text-domain reload (issue #32, D07). Any other warning is new and worth reading, even though it does not fail the job. To reproduce a CI failure locally, take the ZIP from the job's `verify-phone-number-shift64` artifact (or build it), install it on a test site that has the Plugin Check plugin and run `wp plugin check verify-phone-number-shift64` there. Checking the repository folder itself also reports development files that never ship.
 
 ### Release cadence (Guideline 14)
 

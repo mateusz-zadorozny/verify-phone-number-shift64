@@ -110,7 +110,9 @@ jobs:
 
       # Runs the latest Plugin Check on the built folder in wp-env (latest WordPress), with
       # WooCommerce installed from "Requires Plugins". Any ERROR fails the job; WARNINGs are
-      # reported as annotations and in the PR comment but do not fail it.
+      # reported as annotations and in the PR comment but do not fail it. One is expected and
+      # accepted, load_plugin_textdomainFound for the main plugin file (docs/CI-CD-SETUP.md,
+      # Plugin Check), so any other warning here is new.
       - name: Plugin Check
         uses: WordPress/plugin-check-action@10857da14b6c2246d15402b3e69f777edcf8c12e # v1.1.9
         with:
