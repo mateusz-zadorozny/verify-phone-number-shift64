@@ -4,7 +4,7 @@ Tags: phone validation, phone number, woocommerce, checkout, validation
 Requires at least: 7.1
 Tested up to: 7.1
 Requires PHP: 8.3
-Stable tag: 1.5.1
+Stable tag: 2.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -117,6 +117,10 @@ It was installed from a copy of the source code (such as a ZIP of the GitHub rep
 
 == Changelog ==
 
+= 2.0.0 =
+* Breaking: Requires WordPress 7.1 or later. On an older WordPress the plugin checks no phone numbers and shows administrators a notice.
+* Fix: Keep block-checkout messages translated on WordPress 6.7+.
+
 = 1.5.1 =
 * Fix: Highlight the phone field on block themes in classic checkout.
 
@@ -143,9 +147,6 @@ It was installed from a copy of the source code (such as a ZIP of the GitHub rep
 
 = 1.3.0 =
 * New: Declare compatibility with High-Performance Order Storage (HPOS) and the Cart and Checkout blocks.
-
-= 1.2.2 =
-* Fix: The GitHub updater offers updates regardless of the plugin folder name.
 
 Older releases: [full changelog on GitHub](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/blob/master/CHANGELOG.md).
 

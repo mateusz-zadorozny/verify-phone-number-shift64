@@ -1,3 +1,15 @@
+# [2.0.0](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.5.1...v2.0.0) (2026-10-09)
+
+
+### Bug Fixes
+
+* **checkout:** keep block-checkout messages translated on WordPress 6.7+ ([#41](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/issues/41)) ([f03eda4](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/commit/f03eda402e090cc9f5ad8d23953b452ab901d2e6))
+
+
+### BREAKING CHANGES
+
+* **checkout:** requires WordPress 7.1 or later. On an older WordPress the plugin checks no phone numbers and shows administrators a notice.
+
 ## [1.5.1](https://github.com/mateusz-zadorozny/verify-phone-number-shift64/compare/v1.5.0...v1.5.1) (2026-10-06)
 
 
